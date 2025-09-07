@@ -908,7 +908,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- JavaScript para el Layout Designer -->
 <script>
 // Configuración de rutas
-const BASE_URL = window.location.origin + '/POS/';
+const BASE_URL = '<?= getBaseUrl() ?>';
 const CONTROLLER_URL = BASE_URL + 'controllers/guardar_layout_temp.php'; // Temporal - funciona sin auth
 
 document.addEventListener('DOMContentLoaded', function() {

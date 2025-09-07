@@ -12,7 +12,7 @@ define('DB_PASS', 'root');
 define('DB_CHARSET', 'utf8mb4');
 
 // URLs del sistema
-define('BASE_URL', 'http://localhost:8888/POS/');
+define('BASE_URL', 'https://gastos.kallijaguar-inventory.com/');
 define('API_BASE_URL', BASE_URL . 'api/');
 define('ASSETS_URL', BASE_URL . 'assets/');
 
@@ -86,5 +86,28 @@ function isDebugMode() {
  */
 function getBaseUrl() {
     return BASE_URL;
+}
+
+/**
+ * Función helper para generar URLs completas
+ */
+function url($path = '') {
+    $base = rtrim(BASE_URL, '/');
+    $path = ltrim($path, '/');
+    return $path ? $base . '/' . $path : $base . '/';
+}
+
+/**
+ * Función helper para generar URLs de assets
+ */
+function asset($path = '') {
+    return url('assets/' . ltrim($path, '/'));
+}
+
+/**
+ * Función helper para generar URLs de API
+ */
+function apiUrl($path = '') {
+    return url('api/' . ltrim($path, '/'));
 }
 ?>

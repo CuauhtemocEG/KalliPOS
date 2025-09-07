@@ -1,6 +1,7 @@
 <?php
 namespace POS\Auth;
 
+require_once __DIR__ . '/../../config/config.php';
 use POS\Auth\JWTAuth;
 
 class AuthMiddleware {
@@ -162,7 +163,7 @@ class AuthMiddleware {
         }
         
         if ($redirect) {
-            header('Location: /POS/login.php');
+            header('Location: ' . url('login.php'));
             exit;
         }
         
@@ -185,7 +186,7 @@ class AuthMiddleware {
         }
         
         if ($redirect) {
-            header('Location: /POS/error.php?code=403');
+            header('Location: ' . url('error.php?code=403'));
             exit;
         }
         

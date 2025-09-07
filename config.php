@@ -1,47 +1,67 @@
 <?php
 /**
- * Configuración JWT y del Sistema POS
+ * Archivo de configuración principal - Redirige a la configuración unificada
+ * Este archivo mantiene compatibilidad con archivos que requieren config.php en la raíz
  */
 
-// Configuración JWT
-define('JWT_SECRET_KEY', 'kalli_jaguar_pos_2025_secret_key_super_secure'); // CAMBIAR EN PRODUCCIÓN
-define('JWT_ALGORITHM', 'HS256');
-define('JWT_EXPIRATION_TIME', 8 * 60 * 60); // 8 horas
-define('JWT_REFRESH_TIME', 7 * 24 * 60 * 60); // 7 días para refresh
+// Incluir la configuración principal del directorio config/
+require_once __DIR__ . '/config/config.php';
 
-// Configuración de la Base de Datos
-define('DB_HOST', 'localhost:3306');
-define('DB_NAME', 'kallijag_pos');
-define('DB_USER', 'kallijag_pos');
-define('DB_PASS', '{&<eXA[x$?_q\<N');
+// Mantener estas definiciones para compatibilidad con el sistema actual
+if (!defined('APP_URL')) {
+    define('APP_URL', BASE_URL);
+}
 
-// Configuración de la Aplicación
-define('APP_NAME', 'Kalli Jaguar POS');
-define('APP_URL', 'https://gastos.kallijaguar-inventory.com/');
-define('APP_TIMEZONE', 'America/Mexico_City');
+if (!defined('JWT_SECRET_KEY')) {
+    define('JWT_SECRET_KEY', JWT_SECRET);
+}
 
-// Configuración de Sesiones
-define('SESSION_TIMEOUT', 8 * 60 * 60); // 8 horas
-define('MAX_LOGIN_ATTEMPTS', 5);
-define('LOGIN_LOCKOUT_TIME', 15 * 60); // 15 minutos
+if (!defined('JWT_ALGORITHM')) {
+    define('JWT_ALGORITHM', 'HS256');
+}
 
-// Configuración de Logs
-define('LOG_AUTH_ATTEMPTS', true);
-define('LOG_USER_ACTIONS', true);
+if (!defined('JWT_EXPIRATION_TIME')) {
+    define('JWT_EXPIRATION_TIME', JWT_EXPIRATION_HOURS * 60 * 60);
+}
 
-// Rutas que no requieren autenticación
-define('PUBLIC_ROUTES', [
-    '/login.php',
-    '/auth/login.php',
-    '/auth/logout.php',
-    '/auth/verify-token.php',
-    '/assets/',
-    '/vendor/'
-]);
+if (!defined('JWT_REFRESH_TIME')) {
+    define('JWT_REFRESH_TIME', 7 * 24 * 60 * 60); // 7 días
+}
 
-// Configuración de CORS
-define('CORS_ALLOWED_ORIGINS', [
-    'https://gastos.kallijaguar-inventory.com/'
-]);
+if (!defined('SESSION_TIMEOUT')) {
+    define('SESSION_TIMEOUT', SESSION_TIMEOUT_MINUTES * 60);
+}
 
-date_default_timezone_set(APP_TIMEZONE);
+if (!defined('MAX_LOGIN_ATTEMPTS')) {
+    define('MAX_LOGIN_ATTEMPTS', 5);
+}
+
+if (!defined('LOGIN_LOCKOUT_TIME')) {
+    define('LOGIN_LOCKOUT_TIME', 15 * 60);
+}
+
+if (!defined('LOG_AUTH_ATTEMPTS')) {
+    define('LOG_AUTH_ATTEMPTS', true);
+}
+
+if (!defined('LOG_USER_ACTIONS')) {
+    define('LOG_USER_ACTIONS', true);
+}
+
+if (!defined('PUBLIC_ROUTES')) {
+    define('PUBLIC_ROUTES', [
+        '/login.php',
+        '/auth/login.php',
+        '/auth/logout.php',
+        '/auth/verify-token.php',
+        '/assets/',
+        '/vendor/'
+    ]);
+}
+
+if (!defined('CORS_ALLOWED_ORIGINS')) {
+    define('CORS_ALLOWED_ORIGINS', [
+        BASE_URL
+    ]);
+}
+?>

@@ -229,7 +229,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
                         <?php endif; ?>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <?php if ($esAdministrador): ?>
-                            <a href="/POS/controllers/impresion_ticket.php?orden_id=<?= $orden_id ?>" target="_blank" class="block bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
+                            <a href="<?= url('controllers/impresion_ticket.php?orden_id=' . $orden_id) ?>" target="_blank" class="block bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
                                 <i class="bi bi-printer mr-2"></i>Ticket PDF
                             </a>
                         <?php endif; ?>
@@ -314,6 +314,12 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
     const mesaId = <?= $mesa_id ?>;
     const ordenId = <?= $orden_id ?>;
     const esAdministrador = <?= $esAdministrador ? 'true' : 'false' ?>;
+    
+    // Configuración de URLs
+    const BASE_URL = '<?= getBaseUrl() ?>';
+    const CONTROLLERS_URL = '<?= url('controllers/') ?>';
+    const ASSETS_URL = '<?= ASSETS_URL ?>';
+    const API_URL = '<?= API_BASE_URL ?>';
 
     /** 🔹 Funciones globales para manejo de efectivo y cambio */
     function toggleEfectivoFields() {
@@ -413,7 +419,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
 
     /** 🔹 Cargar Categorías */
     function cargarCategorias() {
-        fetch('/POS/controllers/categorias.php')
+        fetch(CONTROLLERS_URL + 'categorias.php')
             .then(function(r) {
                 return r.json();
             })
@@ -461,7 +467,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
         if (cat_id === undefined) cat_id = 0;
         if (q === undefined) q = '';
 
-        fetch('/POS/controllers/buscar_productos.php?cat_id=' + cat_id + '&q=' + encodeURIComponent(q))
+        fetch(CONTROLLERS_URL + 'buscar_productos.php?cat_id=' + cat_id + '&q=' + encodeURIComponent(q))
             .then(function(r) {
                 return r.json();
             })
@@ -470,7 +476,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
                 data.forEach(function(prod) {
                     html += '<div class="product-card group bg-gradient-to-br from-slate-700 to-slate-600 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 cursor-pointer border border-slate-500 hover:border-blue-400" onclick="agregarProductoMesa(' + prod.id + ')">' +
                         '<div class="aspect-square overflow-hidden bg-slate-800">' +
-                        '<img src="assets/img/' + (prod.imagen || 'noimg.png') + '" ' +
+                        '<img src="' + ASSETS_URL + 'img/' + (prod.imagen || 'noimg.png') + '" ' +
                         'alt="' + prod.nombre + '"' +
                         'class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"' +
                         'onerror="this.src=\'assets/img/noimg.png\'">' +
@@ -507,7 +513,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
 
     /** 🔹 Agregar producto */
     function agregarProductoMesa(producto_id) {
-        fetch('/POS/controllers/newPos/agregar_producto_orden.php', {
+        fetch(CONTROLLERS_URL + 'newPos/agregar_producto_orden.php', {
                 method: 'POST',
                 body: new URLSearchParams({
                     producto_id: producto_id,
@@ -735,7 +741,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
             }
         });
 
-        fetch('/POS/controllers/newPos/solicitar_cancelacion.php', {
+        fetch(CONTROLLERS_URL + 'newPos/solicitar_cancelacion.php', {
                 method: 'POST',
                 body: new URLSearchParams({
                     orden_producto_id: ordenProductoId,
@@ -780,7 +786,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
 
     /** 🔹 Cargar Orden */
     function cargarOrden() {
-        fetch('/POS/controllers/newPos/orden_actual.php?orden_id=' + ordenId)
+        fetch(CONTROLLERS_URL + 'newPos/orden_actual.php?orden_id=' + ordenId)
             .then(function(r) {
                 if (!r.ok) {
                     throw new Error('Error HTTP: ' + r.status);
@@ -940,7 +946,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
                         let val = Math.max(1, parseInt(this.value));
                         this.classList.add('animate-pulse');
 
-                        fetch('/POS/controllers/newPos/actualizar_producto_orden.php', {
+                        fetch(CONTROLLERS_URL + 'newPos/actualizar_producto_orden.php', {
                             method: 'POST',
                             body: new URLSearchParams({
                                 producto_id: this.getAttribute('data-id'),
@@ -1131,7 +1137,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
                                 if (result.isConfirmed) {
                                     button.classList.add('animate-pulse');
 
-                                    fetch('/POS/controllers/newPos/actualizar_producto_orden.php', {
+                                    fetch(CONTROLLERS_URL + 'newPos/actualizar_producto_orden.php', {
                                         method: 'POST',
                                         body: new URLSearchParams({
                                             producto_id: productoId,
@@ -1234,7 +1240,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
                             }
                         });
 
-                        fetch('/POS/controllers/newPos/cancelar_orden.php', {
+                        fetch(CONTROLLERS_URL + 'newPos/cancelar_orden.php', {
                                 method: 'POST',
                                 body: new URLSearchParams({
                                     orden_id: ordenId
@@ -1278,7 +1284,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
                 e.preventDefault();
 
                 // Verificar si hay productos sin preparar antes de permitir cerrar
-                fetch('/POS/controllers/newPos/orden_actual.php?orden_id=' + ordenId)
+                fetch(CONTROLLERS_URL + 'newPos/orden_actual.php?orden_id=' + ordenId)
                     .then(function(r) {
                         if (!r.ok) {
                             throw new Error('Error HTTP: ' + r.status + ' ' + r.statusText);
@@ -1697,7 +1703,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
 </script>
 
 <!-- Incluir sistema de impresión térmica -->
-<script src="js/impresion-termica.js"></script>
+<script src="<?= asset('js/impresion-termica.js') ?>"></script>
 <script>
     // Hacer disponible la configuración de impresora para JavaScript
     window.configImpresoraNombre = '<?= $config_impresion['nombre_impresora'] ?? '' ?>';
