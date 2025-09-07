@@ -1,0 +1,1 @@
+[07-Sep-2025 03:50:15 America/Mexico_City] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home2/kallijag/gastos.kallijaguar-inventory.com/views/header.php:1) in /home2/kallijag/gastos.kallijaguar-inventory.com/views/autorizaciones.php on line 14

@@ -1,0 +1,10 @@
+[07-Sep-2025 03:56:20 America/Mexico_City] PHP Fatal error:  Uncaught TypeError: PDOStatement::execute(): Argument #1 ($params) must be of type ?array, string given in /home2/kallijag/gastos.kallijaguar-inventory.com/controllers/crear_mesa.php:75
+Stack trace:
+#0 /home2/kallijag/gastos.kallijaguar-inventory.com/controllers/crear_mesa.php(75): PDOStatement->execute('A-1')
+#1 {main}
+  thrown in /home2/kallijag/gastos.kallijaguar-inventory.com/controllers/crear_mesa.php on line 75
+[07-Sep-2025 03:56:31 America/Mexico_City] PHP Fatal error:  Uncaught TypeError: PDOStatement::execute(): Argument #1 ($params) must be of type ?array, string given in /home2/kallijag/gastos.kallijaguar-inventory.com/controllers/crear_mesa.php:75
+Stack trace:
+#0 /home2/kallijag/gastos.kallijaguar-inventory.com/controllers/crear_mesa.php(75): PDOStatement->execute('A-1')
+#1 {main}
+  thrown in /home2/kallijag/gastos.kallijaguar-inventory.com/controllers/crear_mesa.php on line 75
