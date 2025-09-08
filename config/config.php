@@ -5,10 +5,10 @@
  */
 
 // Configuración de la base de datos
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'kallijag_pos_stage');
-define('DB_USER', 'root');
-define('DB_PASS', 'root');
+define('DB_HOST', 'localhost:3306');
+define('DB_NAME', 'kallijag_pos');
+define('DB_USER', 'kallijag_pos');
+define('DB_PASS', '{&<eXA[x$?_q\<N');
 define('DB_CHARSET', 'utf8mb4');
 
 // URLs del sistema
@@ -16,18 +16,8 @@ define('BASE_URL', 'https://gastos.kallijaguar-inventory.com/');
 define('API_BASE_URL', BASE_URL . 'api/');
 define('ASSETS_URL', BASE_URL . 'assets/');
 
-// Configuración de Twilio para SMS
-define('TWILIO_ACCOUNT_SID', ''); // Tu Account SID de Twilio
-define('TWILIO_AUTH_TOKEN', ''); // Tu Auth Token de Twilio
-define('TWILIO_PHONE_NUMBER', ''); // Tu número de Twilio (formato: +1234567890)
-
-// Configuración de SendGrid para emails de respaldo
-define('SENDGRID_API_KEY', ''); // Tu API Key de SendGrid
-define('SENDGRID_FROM_EMAIL', ''); // Email verificado en SendGrid
-define('SENDGRID_FROM_NAME', 'Sistema POS'); // Nombre del remitente
-
 // Configuración del sistema
-define('APP_NAME', 'Restaurant POS');
+define('APP_NAME', 'Kalli Jaguar POS');
 define('APP_VERSION', '1.0.0');
 define('APP_TIMEZONE', 'America/Mexico_City');
 
@@ -40,11 +30,6 @@ define('SESSION_TIMEOUT_MINUTES', 120);
 define('UPLOAD_MAX_SIZE', 5 * 1024 * 1024); // 5MB
 define('UPLOAD_ALLOWED_TYPES', ['jpg', 'jpeg', 'png', 'gif', 'pdf']);
 define('UPLOAD_PATH', __DIR__ . '/../uploads/');
-
-// Configuración de SMS/Notificaciones
-define('SMS_DEFAULT_EXPIRATION_MINUTES', 5);
-define('SMS_MAX_LENGTH', 160);
-define('NOTIFICATION_RETRY_ATTEMPTS', 3);
 
 // Configuración de desarrollo/producción
 define('DEBUG_MODE', true); // Cambiar a false en producción
