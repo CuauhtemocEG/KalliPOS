@@ -15,7 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$email_destino = trim($_POST['email'] ?? '');
+
+// Leer email desde JSON (para fetch con application/json)
+$input = json_decode(file_get_contents('php://input'), true);
+$email_destino = trim($input['email'] ?? '');
 
 if (empty($email_destino) || !filter_var($email_destino, FILTER_VALIDATE_EMAIL)) {
     echo json_encode(['success' => false, 'message' => 'Email válido requerido']);
