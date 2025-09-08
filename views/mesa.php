@@ -285,7 +285,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
                                 <i class="bi bi-lightning mr-1"></i>Prueba Impresión
                             </button>
                         </div>
-                        <form method="post" action="/POS/controllers/cerrar_orden.php" id="cerrar-orden-form">
+                        <form method="post" action="controllers/cerrar_orden.php" id="cerrar-orden-form">
                             <input type="hidden" name="orden_id" value="<?= $orden['id'] ?>">
                             <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition-colors">
                                 <i class="bi bi-cash-coin mr-2"></i>Cerrar y Pagar
