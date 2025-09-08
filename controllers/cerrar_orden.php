@@ -110,7 +110,9 @@ try {
     }
     
     // Registrar en historial de órdenes
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     $usuario_id = $_SESSION['user_id'] ?? null;
     
     $metodos_nombres = [
