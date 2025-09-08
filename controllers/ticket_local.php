@@ -2,7 +2,83 @@
 /**
  * Sistema de Impresión Local para Laptop Base
  * Este archivo genera tickets que se imprimen directamente desde el navegador
+ * Formato idéntico al ticket térmico
  */
+
+/**
+ * Convertir número a texto en español (idéntico a imprimir_termica.php)
+ */
+function numeroATextoHelper($numero) {
+    $unidades = array('', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve',
+                     'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 
+                     'dieciocho', 'diecinueve', 'veinte');
+    
+    $decenas = array('', '', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa');
+    $centenas = array('', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos');
+    
+    if ($numero == 0) return 'cero pesos';
+    
+    $entero = floor($numero);
+    $decimales = round(($numero - $entero) * 100);
+    
+    $texto = '';
+    
+    // Procesar miles
+    if ($entero >= 1000) {
+        $miles = floor($entero / 1000);
+        if ($miles == 1) {
+            $texto .= 'mil ';
+        } else {
+            $texto .= numeroATextoHelper($miles) . ' mil ';
+        }
+        $entero = $entero % 1000;
+    }
+    
+    // Procesar centenas
+    if ($entero >= 100) {
+        $cen = floor($entero / 100);
+        if ($entero == 100) {
+            $texto .= 'cien ';
+        } else {
+            $texto .= $centenas[$cen] . ' ';
+        }
+        $entero = $entero % 100;
+    }
+    
+    // Procesar decenas y unidades
+    if ($entero >= 21) {
+        $dec = floor($entero / 10);
+        $uni = $entero % 10;
+        $texto .= $decenas[$dec];
+        if ($uni > 0) {
+            $texto .= ' y ' . $unidades[$uni];
+        }
+    } else if ($entero > 0) {
+        $texto .= $unidades[$entero];
+    }
+    
+    $texto .= ' pesos';
+    
+    if ($decimales > 0) {
+        $texto .= ' con ' . $decimales . '/100';
+    }
+    
+    return trim($texto);
+}
+
+/**
+ * Formatear método de pago (idéntico a imprimir_termica.php)
+ */
+function formatearMetodoPagoHelper($metodo) {
+    $metodos = [
+        'efectivo' => 'EFECTIVO',
+        'tarjeta' => 'TARJETA',
+        'transferencia' => 'TRANSFERENCIA',
+        'cheque' => 'CHEQUE'
+    ];
+    
+    return $metodos[$metodo] ?? strtoupper($metodo);
+}
 
 // Datos de ejemplo para ticket de prueba
 $datosPrueba = [
@@ -27,7 +103,11 @@ $datosPrueba = [
         ]
     ],
     'subtotal' => 76.00,
-    'total' => 88.16
+    'total' => 88.16,
+    'metodo_pago' => 'efectivo',
+    'dinero_recibido' => 100.00,
+    'cambio' => 11.84,
+    'estado' => 'cerrada'
 ];
 
 // Verificar si es una prueba o una orden real
@@ -37,6 +117,9 @@ $orden_id = $esPrueba ? null : ($_GET['orden_id'] ?? null);
 if (!$esPrueba && !$orden_id) {
     die('Error: ID de orden no proporcionado');
 }
+
+// Datos de configuración por defecto
+$sucursal_nombre = 'RESTAURANT POS';
 
 // Si es prueba, usar datos de ejemplo
 if ($esPrueba) {
@@ -49,13 +132,8 @@ if ($esPrueba) {
     try {
         $pdo = conexion();
         
-        // Obtener datos de la orden
-        $stmt = $pdo->prepare("
-            SELECT o.*, m.nombre as mesa_nombre
-            FROM ordenes o 
-            JOIN mesas m ON o.mesa_id = m.id 
-            WHERE o.id = ?
-        ");
+        // Obtener datos de la orden (formato idéntico a imprimir_termica.php)
+        $stmt = $pdo->prepare("SELECT * FROM ordenes o JOIN mesas m WHERE o.mesa_id=mesa_id AND o.id = ?");
         $stmt->execute([$orden_id]);
         $orden = $stmt->fetch();
         
@@ -63,16 +141,24 @@ if ($esPrueba) {
             die('Error: Orden no encontrada');
         }
         
-        // Obtener productos de la orden
+        // Obtener productos de la orden (solo productos preparados, no cancelados)
         $stmt = $pdo->prepare("
-            SELECT op.*, p.nombre, p.precio
-            FROM orden_productos op
-            JOIN productos p ON op.producto_id = p.id
-            WHERE op.orden_id = ?
-            ORDER BY p.nombre
+            SELECT op.*, p.nombre, p.precio 
+            FROM orden_productos op 
+            JOIN productos p ON op.producto_id = p.id 
+            WHERE op.orden_id = ? AND op.preparado = 1
         ");
         $stmt->execute([$orden_id]);
         $productos = $stmt->fetchAll();
+
+        // Obtener datos de la sucursal (idéntico a imprimir_termica.php)
+        $stmt = $pdo->prepare("SELECT valor FROM configuracion WHERE clave = 'empresa_nombre'");
+        $stmt->execute();
+        $sucursal = $stmt->fetch();
+        
+        if ($sucursal) {
+            $sucursal_nombre = $sucursal['valor'];
+        }
         
     } catch (Exception $e) {
         die('Error de base de datos: ' . $e->getMessage());
@@ -91,7 +177,7 @@ if ($esPrueba) {
         @media print {
             body { margin: 0; font-family: 'Courier New', monospace; }
             .no-print { display: none; }
-            .ticket { width: 58mm; font-size: 12px; }
+            .ticket { width: 58mm; font-size: 10px; }
         }
         
         /* Estilos para pantalla */
@@ -124,13 +210,81 @@ if ($esPrueba) {
         .ticket {
             font-family: 'Courier New', monospace;
             line-height: 1.2;
+            font-size: 12px;
         }
         
         .center { text-align: center; }
+        .right { text-align: right; }
         .bold { font-weight: bold; }
-        .separator { border-top: 1px dashed #000; margin: 10px 0; }
-        .item-line { display: flex; justify-content: space-between; margin: 2px 0; }
-        .total-line { font-weight: bold; font-size: 14px; }
+        .large { font-size: 16px; }
+        .separator { 
+            border-top: 1px dashed #000; 
+            margin: 8px 0; 
+            width: 100%;
+        }
+        
+        /* Tabla de productos - formato idéntico a ticket térmico */
+        .product-table {
+            width: 100%;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .table-row {
+            display: flex;
+            width: 100%;
+            margin: 1px 0;
+        }
+        
+        .table-row.header {
+            font-weight: bold;
+            border-bottom: 1px solid #000;
+            margin-bottom: 3px;
+        }
+        
+        .table-row.comment {
+            font-size: 10px;
+            color: #666;
+        }
+        
+        /* Columnas con ancho fijo para alineación (45 caracteres total como en ticket térmico) */
+        .col-qty {
+            width: 8%;
+            text-align: center;
+        }
+        
+        .col-desc {
+            width: 50%;
+            text-align: left;
+            padding-left: 2px;
+            /* Truncar texto largo */
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        
+        .col-price {
+            width: 20%;
+            text-align: right;
+            padding-right: 2px;
+        }
+        
+        .col-total {
+            width: 22%;
+            text-align: right;
+        }
+        
+        /* Ajustes responsivos para impresión térmica */
+        @media print {
+            .product-table {
+                font-size: 9px;
+            }
+            
+            .col-desc {
+                /* Para tickets térmicos, permitir wrap en descripción larga */
+                white-space: normal;
+                word-wrap: break-word;
+            }
+        }
     </style>
 </head>
 <body>
@@ -159,125 +313,126 @@ if ($esPrueba) {
         </div>
     </div>
 
-    <!-- Contenido del ticket -->
+    <!-- Contenido del ticket - Formato idéntico a imprimir_termica.php -->
     <div class="ticket">
+        <!-- Encabezado con información de sucursal -->
         <div class="center bold">
-            <?= htmlspecialchars(APP_NAME ?? 'RESTAURANT POS') ?>
-        </div>
-        <div class="center">
-            Tel: (555) 123-4567<br>
-            RFC: ABCD123456789
-        </div>
-        
-        <div class="separator"></div>
-        
-        <div class="center bold">
-            <?php if ($esPrueba): ?>
-                🧪 TICKET DE PRUEBA
-            <?php else: ?>
-                ORDEN #<?= str_pad($orden->id, 6, '0', STR_PAD_LEFT) ?>
-            <?php endif; ?>
+            <?= htmlspecialchars($sucursal_nombre) ?>
         </div>
         
         <div class="separator"></div>
         
         <div>
-            <strong>Mesa:</strong> <?= htmlspecialchars($orden->mesa_nombre) ?><br>
-            <strong>Fecha:</strong> <?= date('d/m/Y H:i', strtotime($orden->fecha_creacion)) ?><br>
-            <?php if (!$esPrueba): ?>
-                <strong>Estado:</strong> <?= strtoupper($orden->estado) ?>
-            <?php else: ?>
-                <strong>Tipo:</strong> CONFIGURACIÓN DE PRUEBA
-            <?php endif; ?>
+            Sucursal: <?= htmlspecialchars($sucursal_nombre) ?><br>
+            Mesa: <?= htmlspecialchars($esPrueba ? $orden->mesa_nombre : $orden['nombre']) ?><br>
+            Orden: #<?= htmlspecialchars($esPrueba ? $orden->id : $orden['codigo']) ?><br>
+            Fecha: <?= date('d/m/Y H:i:s', strtotime($esPrueba ? $orden->fecha_creacion : $orden['creada_en'])) ?>
         </div>
         
         <div class="separator"></div>
         
-        <!-- Productos -->
+        <!-- Tabla de productos (formato idéntico a tablaProductos) -->
         <?php 
-        $subtotal = 0;
+        $total_orden = 0;
         
-        foreach ($productos as $producto): 
-            // Acceso a propiedades para objetos y arrays
-            $nombre = is_object($producto) ? $producto->nombre : $producto['nombre'];
-            $cantidad = is_object($producto) ? $producto->cantidad : $producto['cantidad'];
-            $precio = is_object($producto) ? $producto->precio : ($producto['precio_unitario'] ?? $producto['precio']);
-            
-            $total_producto = $cantidad * $precio;
-            $subtotal += $total_producto;
+        // Encabezado de la tabla
         ?>
-            <div class="item-line">
-                <span><?= $cantidad ?>x <?= htmlspecialchars($nombre) ?></span>
-                <span>$<?= number_format($total_producto, 2) ?></span>
+        <div class="product-table">
+            <div class="table-row header">
+                <span class="col-qty">CANT</span>
+                <span class="col-desc">DESCRIPCION</span>
+                <span class="col-price">PRECIO</span>
+                <span class="col-total">TOTAL</span>
             </div>
-            <?php 
-            $comentarios = is_object($producto) ? ($producto->comentarios ?? null) : ($producto['comentarios'] ?? null);
-            if (!empty($comentarios)): 
+            
+            <?php foreach ($productos as $producto): 
+                // Acceso a propiedades para objetos y arrays
+                $nombre = is_object($producto) ? $producto->nombre : $producto['nombre'];
+                $cantidad = is_object($producto) ? $producto->cantidad : $producto['cantidad'];
+                $precio = is_object($producto) ? $producto->precio : ($producto['precio_unitario'] ?? $producto['precio']);
+                
+                $total_producto = $cantidad * $precio;
+                $total_orden += $total_producto;
             ?>
-                <div style="font-size: 10px; margin-left: 10px; color: #666;">
-                    * <?= htmlspecialchars($comentarios) ?>
+                <div class="table-row">
+                    <span class="col-qty"><?= $cantidad ?></span>
+                    <span class="col-desc"><?= htmlspecialchars($nombre) ?></span>
+                    <span class="col-price">$<?= number_format($precio, 2) ?></span>
+                    <span class="col-total">$<?= number_format($total_producto, 2) ?></span>
                 </div>
-            <?php endif; ?>
-        <?php endforeach; ?>
+                <?php 
+                $comentarios = is_object($producto) ? ($producto->comentarios ?? null) : ($producto['comentarios'] ?? null);
+                if (!empty($comentarios)): 
+                ?>
+                    <div class="table-row comment">
+                        <span class="col-qty"></span>
+                        <span class="col-desc" style="font-style: italic; color: #666;">* <?= htmlspecialchars($comentarios) ?></span>
+                        <span class="col-price"></span>
+                        <span class="col-total"></span>
+                    </div>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
         
         <div class="separator"></div>
         
-        <!-- Totales -->
-        <?php if ($esPrueba): ?>
-            <!-- Usar totales predefinidos para la prueba -->
-            <div class="item-line">
-                <span>SUBTOTAL:</span>
-                <span>$<?= number_format($orden->subtotal, 2) ?></span>
-            </div>
-            
-            <div class="item-line">
-                <span>IVA (16%):</span>
-                <span>$<?= number_format($orden->total - $orden->subtotal, 2) ?></span>
-            </div>
-            
+        <!-- Total (formato idéntico) -->
+        <div class="right bold large">
+            TOTAL: $<?= number_format($esPrueba ? $orden->total : $total_orden, 2) ?>
+        </div>
+        
+        <div class="separator"></div>
+        
+        <!-- Total en texto (idéntico a imprimir_termica.php) -->
+        <?php 
+        $totalTexto = numeroATextoHelper($esPrueba ? $orden->total : $total_orden);
+        ?>
+        <div class="center">
+            <?= ucfirst($totalTexto) ?>
+        </div>
+        
+        <!-- Información del pago (si está cerrada o es prueba) -->
+        <?php if (($esPrueba && $orden->estado === 'cerrada') || (!$esPrueba && $orden['estado'] === 'cerrada')): ?>
             <div class="separator"></div>
             
-            <div class="item-line total-line">
-                <span>TOTAL:</span>
-                <span>$<?= number_format($orden->total, 2) ?></span>
-            </div>
-        <?php else: ?>
-            <!-- Calcular totales para orden real -->
-            <div class="item-line">
-                <span>SUBTOTAL:</span>
-                <span>$<?= number_format($subtotal, 2) ?></span>
+            <div class="bold">
+                METODO DE PAGO: <?= formatearMetodoPagoHelper($esPrueba ? $orden->metodo_pago : ($orden['metodo_pago'] ?? 'efectivo')) ?>
             </div>
             
             <?php 
-            $iva = $subtotal * 0.16; // 16% IVA
-            $total = $subtotal + $iva;
+            $metodo_pago = $esPrueba ? $orden->metodo_pago : ($orden['metodo_pago'] ?? 'efectivo');
+            $dinero_recibido = $esPrueba ? $orden->dinero_recibido : ($orden['dinero_recibido'] ?? null);
+            $cambio = $esPrueba ? $orden->cambio : ($orden['cambio'] ?? null);
+            
+            if (($metodo_pago === 'efectivo' || !isset($metodo_pago)) && isset($dinero_recibido) && $dinero_recibido !== null): 
             ?>
-            
-            <div class="item-line">
-                <span>IVA (16%):</span>
-                <span>$<?= number_format($iva, 2) ?></span>
-            </div>
-            
-            <div class="separator"></div>
-            
-            <div class="item-line total-line">
-                <span>TOTAL:</span>
-                <span>$<?= number_format($total, 2) ?></span>
-            </div>
+                <div>
+                    Dinero recibido: $<?= number_format($dinero_recibido, 2) ?>
+                </div>
+                
+                <?php if (isset($cambio) && $cambio !== null && $cambio > 0): ?>
+                    <div class="bold">
+                        Cambio: $<?= number_format($cambio, 2) ?>
+                    </div>
+                <?php else: ?>
+                    <div>
+                        Pago exacto
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
         <?php endif; ?>
         
         <div class="separator"></div>
         
         <div class="center">
-            ¡Gracias por su preferencia!<br>
-            <small>Ticket generado: <?= date('d/m/Y H:i:s') ?></small>
+            ¡Gracias por su preferencia!
         </div>
         
-        <div class="center" style="margin-top: 10px;">
+        <div class="center" style="margin-top: 15px;">
             <?php if ($esPrueba): ?>
                 <small>🧪 Sistema POS - Ticket de Prueba</small>
             <?php else: ?>
-                <small>Sistema POS - Orden #<?= $orden->id ?></small>
+                <small>Sistema POS - Orden #<?= $orden['id'] ?></small>
             <?php endif; ?>
         </div>
     </div>
