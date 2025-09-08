@@ -83,14 +83,27 @@ class ImpresorTermicaJS {
     }
 
     /**
-     * Mostrar error
+     * Mostrar error con sugerencia opcional
      */
-    mostrarError(titulo = 'Error al imprimir', mensaje = 'No se pudo enviar el ticket') {
+    mostrarError(titulo = 'Error al imprimir', mensaje = 'No se pudo enviar el ticket', sugerencia = null) {
+        let html = `<p>${mensaje}</p>`;
+        
+        if (sugerencia) {
+            html += `
+                <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 12px; margin-top: 15px;">
+                    <h4 style="color: #92400e; margin: 0 0 8px 0; font-size: 14px;">💡 Sugerencia:</h4>
+                    <p style="color: #92400e; margin: 0; font-size: 13px;">${sugerencia}</p>
+                </div>
+            `;
+        }
+        
         Swal.fire({
             icon: 'error',
             title: titulo,
-            text: mensaje,
-            confirmButtonColor: '#dc2626'
+            html: html,
+            confirmButtonColor: '#dc2626',
+            confirmButtonText: 'Entendido',
+            width: '450px'
         });
     }
 }
@@ -134,7 +147,11 @@ async function imprimirTicketTermico(ordenId, nombreImpresora = null) {
         if (resultado.success) {
             impresorTermica.mostrarExito();
         } else {
-            impresorTermica.mostrarError('Error al imprimir', resultado.message || 'Error desconocido');
+            impresorTermica.mostrarError(
+                'Error al imprimir', 
+                resultado.message || 'Error desconocido',
+                resultado.suggestion || null
+            );
         }
 
     } catch (error) {
@@ -171,7 +188,8 @@ async function imprimirPruebaTermica(nombreImpresora) {
         } else {
             impresorTermica.mostrarError(
                 'Error en la prueba',
-                resultado.error || 'Error desconocido al enviar comandos ESC/POS'
+                resultado.message || resultado.error || 'Error desconocido al enviar comandos ESC/POS',
+                resultado.suggestion || null
             );
         }
 

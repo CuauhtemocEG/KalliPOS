@@ -767,9 +767,21 @@ class ImpresorTermica {
     }
     
     /**
-     * Enviar a impresora (macOS)
+     * Enviar a impresora (macOS/Linux)
      */
     public function imprimir($nombreImpresora) {
+        // Verificar si estamos en un entorno donde lpr está disponible
+        $lprDisponible = shell_exec('which lpr 2>/dev/null');
+        
+        if (empty($lprDisponible)) {
+            return [
+                'success' => false,
+                'error' => 'COMANDO_NO_DISPONIBLE',
+                'message' => 'El comando lpr no está disponible en este servidor. Usa el método "Navegador" para imprimir desde tu laptop.',
+                'suggestion' => 'Cambia a método "Navegador" en la configuración de impresoras.'
+            ];
+        }
+        
         // Crear archivo temporal
         $archivoTemp = tempnam(sys_get_temp_dir(), 'ticket_');
         file_put_contents($archivoTemp, $this->contenido);
@@ -781,7 +793,25 @@ class ImpresorTermica {
         // Limpiar archivo temporal
         unlink($archivoTemp);
         
-        return $resultado;
+        // Verificar si hubo errores
+        if (!empty($resultado) && (
+            strpos($resultado, 'command not found') !== false ||
+            strpos($resultado, 'No such file or directory') !== false ||
+            strpos($resultado, 'cannot find') !== false
+        )) {
+            return [
+                'success' => false,
+                'error' => 'COMANDO_FALLIDO',
+                'message' => 'Error de impresión: ' . trim($resultado),
+                'suggestion' => 'Verifica que la impresora esté conectada o usa el método "Navegador".'
+            ];
+        }
+        
+        return [
+            'success' => true,
+            'message' => 'Ticket enviado a impresora correctamente',
+            'output' => $resultado
+        ];
     }
 }
 
@@ -939,11 +969,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Si se especifica impresora, imprimir
                 if (isset($input['impresora'])) {
                     $resultado = $impresora->imprimir($input['impresora']);
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Ticket de prueba enviado a impresora',
-                        'resultado' => $resultado
-                    ]);
+                    
+                    // Verificar si el resultado es un array (nueva versión) o string (versión antigua)
+                    if (is_array($resultado)) {
+                        if ($resultado['success']) {
+                            echo json_encode([
+                                'success' => true,
+                                'message' => 'Ticket de prueba enviado a impresora',
+                                'resultado' => $resultado['output'] ?? ''
+                            ]);
+                        } else {
+                            echo json_encode([
+                                'success' => false,
+                                'message' => $resultado['message'],
+                                'error' => $resultado['error'],
+                                'suggestion' => $resultado['suggestion'] ?? null
+                            ]);
+                        }
+                    } else {
+                        // Compatibilidad con versión antigua (string)
+                        echo json_encode([
+                            'success' => true,
+                            'message' => 'Ticket de prueba enviado a impresora',
+                            'resultado' => $resultado
+                        ]);
+                    }
                 } else {
                     // Solo devolver comandos
                     echo json_encode([
@@ -975,11 +1025,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Si se especifica impresora, imprimir
                 if (isset($input['impresora'])) {
                     $resultado = $impresora->imprimir($input['impresora']);
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Prueba de imagen enviada a impresora',
-                        'resultado' => $resultado
-                    ]);
+                    
+                    // Verificar si el resultado es un array (nueva versión) o string (versión antigua)
+                    if (is_array($resultado)) {
+                        if ($resultado['success']) {
+                            echo json_encode([
+                                'success' => true,
+                                'message' => 'Prueba de imagen enviada a impresora',
+                                'resultado' => $resultado['output'] ?? ''
+                            ]);
+                        } else {
+                            echo json_encode([
+                                'success' => false,
+                                'message' => $resultado['message'],
+                                'error' => $resultado['error'],
+                                'suggestion' => $resultado['suggestion'] ?? null
+                            ]);
+                        }
+                    } else {
+                        // Compatibilidad con versión antigua (string)
+                        echo json_encode([
+                            'success' => true,
+                            'message' => 'Prueba de imagen enviada a impresora',
+                            'resultado' => $resultado
+                        ]);
+                    }
                 } else {
                     // Solo devolver comandos
                     echo json_encode([
@@ -1035,11 +1105,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Si se especifica impresora, imprimir
                 if (isset($input['impresora'])) {
                     $resultado = $impresora->imprimir($input['impresora']);
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Prueba de logo enviada a impresora',
-                        'resultado' => $resultado
-                    ]);
+                    
+                    // Verificar si el resultado es un array (nueva versión) o string (versión antigua)
+                    if (is_array($resultado)) {
+                        if ($resultado['success']) {
+                            echo json_encode([
+                                'success' => true,
+                                'message' => 'Prueba de logo enviada a impresora',
+                                'resultado' => $resultado['output'] ?? ''
+                            ]);
+                        } else {
+                            echo json_encode([
+                                'success' => false,
+                                'message' => $resultado['message'],
+                                'error' => $resultado['error'],
+                                'suggestion' => $resultado['suggestion'] ?? null
+                            ]);
+                        }
+                    } else {
+                        // Compatibilidad con versión antigua (string)
+                        echo json_encode([
+                            'success' => true,
+                            'message' => 'Prueba de logo enviada a impresora',
+                            'resultado' => $resultado
+                        ]);
+                    }
                 } else {
                     echo json_encode([
                         'success' => true,
@@ -1186,11 +1276,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Imprimir si se especifica impresora
                 if (isset($input['impresora'])) {
                     $resultado = $impresora->imprimir($input['impresora']);
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Ticket enviado a impresora',
-                        'resultado' => $resultado
-                    ]);
+                    
+                    // Verificar si el resultado es un array (nueva versión) o string (versión antigua)
+                    if (is_array($resultado)) {
+                        if ($resultado['success']) {
+                            echo json_encode([
+                                'success' => true,
+                                'message' => 'Ticket enviado a impresora',
+                                'resultado' => $resultado['output'] ?? ''
+                            ]);
+                        } else {
+                            echo json_encode([
+                                'success' => false,
+                                'message' => $resultado['message'],
+                                'error' => $resultado['error'],
+                                'suggestion' => $resultado['suggestion'] ?? null
+                            ]);
+                        }
+                    } else {
+                        // Compatibilidad con versión antigua (string)
+                        echo json_encode([
+                            'success' => true,
+                            'message' => 'Ticket enviado a impresora',
+                            'resultado' => $resultado
+                        ]);
+                    }
                 } else {
                     echo json_encode([
                         'success' => true,
