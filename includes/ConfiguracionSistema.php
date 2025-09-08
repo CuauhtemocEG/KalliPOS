@@ -107,7 +107,7 @@ class ConfiguracionSistema {
      * Obtener tiempo de expiración para códigos PIN (en minutos)
      */
     public function tiempoExpiracionPIN() {
-        return (int) $this->obtener('sms_pin_expiracion', 300);
+    return (int) $this->obtener('email_pin_expiracion', 300);
     }
     
     /**

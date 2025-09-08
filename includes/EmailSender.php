@@ -158,22 +158,22 @@ class EmailSender {
                     
                     <div class='warning'>
                         ⚠️ <strong>Importante:</strong> Este código expirará automáticamente en {$expiracion} minutos. 
-                        Ingrese el código en el sistema POS para autorizar la cancelación del producto.
+                        Ingrese el código en el Kalli Jaguar POS para autorizar la cancelación del producto.
                     </div>
                     
                     <div style='text-align: center; margin-top: 30px;'>
                         <p><strong>¿Cómo usar este código?</strong></p>
                         <ol style='text-align: left; display: inline-block;'>
-                            <li>Abra el sistema POS</li>
-                            <li>Vaya a la orden correspondiente</li>
-                            <li>Ingrese el código PIN cuando se solicite</li>
-                            <li>Confirme la cancelación</li>
+                            <li>Abra el sistema Kalli Jaguar POS.</li>
+                            <li>Vaya a la pestaña de Autorizaciones.</li>
+                            <li>Ingrese el código PIN cuando se solicite o pulse USAR ESTE PIN.</li>
+                            <li>Confirme la cancelación.</li>
                         </ol>
                     </div>
                 </div>
                 
                 <div class='footer'>
-                    <p>Este email fue generado automáticamente por el Sistema POS de {$empresa}</p>
+                    <p>Este email fue generado automáticamente por el Kalli Jaguar POS de {$empresa}</p>
                     <p>No responda a este mensaje</p>
                 </div>
             </div>
@@ -201,10 +201,10 @@ class EmailSender {
         $mensaje .= "\n🔑 CÓDIGO PIN DE AUTORIZACIÓN: {$pin}\n\n";
         $mensaje .= "⏰ Válido por {$expiracion} minutos\n\n";
         $mensaje .= "INSTRUCCIONES:\n";
-        $mensaje .= "1. Abra el sistema POS\n";
-        $mensaje .= "2. Vaya a la orden correspondiente\n";
-        $mensaje .= "3. Ingrese el código PIN cuando se solicite\n";
-        $mensaje .= "4. Confirme la cancelación\n\n";
+        $mensaje .= "1. Abra el sistema Kalli Jaguar POS.\n";
+        $mensaje .= "2. Vaya a la pestaña de Autorizaciones.\n";
+        $mensaje .= "3. Ingrese el código PIN cuando se solicite o pulse USAR ESTE PIN.\n";
+        $mensaje .= "4. Confirme la cancelación.\n\n";
         $mensaje .= "⚠️ IMPORTANTE: Este código expirará automáticamente.\n\n";
         $mensaje .= "---\n";
         $mensaje .= "Este email fue generado automáticamente.\n";
