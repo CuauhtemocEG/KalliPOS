@@ -1,6 +1,8 @@
 <?php
 namespace POS\Auth;
 
+require_once __DIR__ . '/../../config/config.php';
+
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use PDO;

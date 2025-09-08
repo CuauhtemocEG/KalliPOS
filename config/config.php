@@ -22,8 +22,12 @@ define('APP_VERSION', '1.0.0');
 define('APP_TIMEZONE', 'America/Mexico_City');
 
 // Configuración de seguridad
-define('JWT_SECRET', 'tu_clave_secreta_jwt_muy_segura_cambiar_en_produccion');
+define('JWT_SECRET', 'kalli_jaguar_pos_2025_secret_key_super_secure_production_v1_123456789');
+define('JWT_SECRET_KEY', JWT_SECRET); // Alias para compatibilidad
+define('JWT_ALGORITHM', 'HS256');
 define('JWT_EXPIRATION_HOURS', 24);
+define('JWT_EXPIRATION_TIME', JWT_EXPIRATION_HOURS * 60 * 60); // Tiempo en segundos
+define('JWT_REFRESH_TIME', 7 * 24 * 60 * 60); // 7 días para refresh token
 define('SESSION_TIMEOUT_MINUTES', 120);
 
 // Configuración de archivos
