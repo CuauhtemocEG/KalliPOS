@@ -1278,7 +1278,7 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
                 e.preventDefault();
 
                 // Verificar si hay productos sin preparar antes de permitir cerrar
-                fetch('/POS/controllers/newPos/orden_actual.php?orden_id=' + ordenId)
+                fetch('controllers/newPos/orden_actual.php?orden_id=' + ordenId)
                     .then(function(r) {
                         if (!r.ok) {
                             throw new Error('Error HTTP: ' + r.status + ' ' + r.statusText);
