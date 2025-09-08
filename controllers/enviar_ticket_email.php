@@ -4,6 +4,16 @@
  * Alternativa cuando la impresión local no está disponible
  */
 
+// Verificar si PHPMailer está disponible e incluir
+if (file_exists('../vendor/phpmailer/phpmailer/src/PHPMailer.php')) {
+    require_once '../vendor/phpmailer/phpmailer/src/PHPMailer.php';
+    require_once '../vendor/phpmailer/phpmailer/src/SMTP.php';
+    require_once '../vendor/phpmailer/phpmailer/src/Exception.php';
+}
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 require_once '../conexion.php';
 require_once '../includes/EmailSender.php';
 
@@ -49,19 +59,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ticketHTML = generarTicketHTML($orden, $productos, $config);
         
         // Configurar EmailSender
-        $emailSender = new EmailSender();
+        $emailSender = new EmailSender($pdo);
         
         // Email del negocio por defecto si no se especifica
         if (!$email_destino) {
             $email_destino = $config['empresa_email'] ?? 'admin@' . $_SERVER['HTTP_HOST'];
         }
         
-        // Enviar email
-        $resultado = $emailSender->enviarTicket(
+        // Enviar email usando método directo
+        $resultado = enviarEmailDirecto(
             $email_destino,
             "Ticket de Orden #{$orden['codigo']}",
-            $ticketHTML,
-            $orden
+            $ticketHTML
         );
         
         if ($resultado['success']) {
@@ -174,5 +183,85 @@ function generarTicketHTML($orden, $productos, $config) {
     </div>';
     
     return $html;
+}
+
+/**
+ * Enviar email directamente usando PHPMailer configurado para HostGator
+ */
+function enviarEmailDirecto($destinatario, $asunto, $cuerpoHTML) {
+    try {
+        // Verificar si PHPMailer está disponible
+        if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+            // Fallback usando mail() de PHP
+            return enviarEmailSimple($destinatario, $asunto, $cuerpoHTML);
+        }
+        
+        // Configuración básica para HostGator
+        $mail = new PHPMailer(true);
+        
+        // Configuración del servidor SMTP de HostGator
+        $mail->isSMTP();
+        $mail->Host = 'localhost'; // HostGator usa localhost para SMTP
+        $mail->SMTPAuth = false;   // HostGator no requiere autenticación desde el hosting
+        $mail->Port = 25;          // Puerto estándar de HostGator
+        
+        // Configurar remitente y destinatario
+        $remitente = 'noreply@' . $_SERVER['HTTP_HOST'];
+        $mail->setFrom($remitente, 'Sistema POS');
+        $mail->addAddress($destinatario);
+        
+        // Configurar contenido
+        $mail->isHTML(true);
+        $mail->Subject = $asunto;
+        $mail->Body = $cuerpoHTML;
+        $mail->CharSet = 'UTF-8';
+        
+        // Enviar
+        $mail->send();
+        
+        return [
+            'success' => true,
+            'message' => 'Email enviado correctamente con PHPMailer'
+        ];
+        
+    } catch (Exception $e) {
+        // Fallback en caso de error con PHPMailer
+        return enviarEmailSimple($destinatario, $asunto, $cuerpoHTML);
+    }
+}
+
+/**
+ * Función fallback usando mail() de PHP
+ */
+function enviarEmailSimple($destinatario, $asunto, $cuerpoHTML) {
+    try {
+        $headers = [
+            'MIME-Version: 1.0',
+            'Content-type: text/html; charset=UTF-8',
+            'From: Sistema POS <noreply@' . $_SERVER['HTTP_HOST'] . '>',
+            'Reply-To: noreply@' . $_SERVER['HTTP_HOST'],
+            'X-Mailer: PHP/' . phpversion()
+        ];
+        
+        $success = mail($destinatario, $asunto, $cuerpoHTML, implode("\r\n", $headers));
+        
+        if ($success) {
+            return [
+                'success' => true,
+                'message' => 'Email enviado correctamente con mail()'
+            ];
+        } else {
+            return [
+                'success' => false,
+                'error' => 'Error al enviar con mail()'
+            ];
+        }
+        
+    } catch (Exception $e) {
+        return [
+            'success' => false,
+            'error' => 'Error en envío simple: ' . $e->getMessage()
+        ];
+    }
 }
 ?>

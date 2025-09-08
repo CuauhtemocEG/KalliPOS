@@ -118,11 +118,21 @@ $ordenes = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <p class="text-gray-400 text-sm">Todas las órdenes registradas en el sistema</p>
         </div>
       </div>
-      <div class="flex items-center space-x-2">
-        <span class="text-sm text-gray-400">Total:</span>
-        <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-semibold">
-          <?= count($ordenes) ?> órdenes
-        </span>
+      <div class="flex items-center space-x-4">
+        <!-- Botón de envío por email -->
+        <a href="enviar_ticket_email.php" 
+           class="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2">
+          <i class="bi bi-envelope-paper"></i>
+          <span>Enviar por Email</span>
+        </a>
+        
+        <!-- Contador de órdenes -->
+        <div class="flex items-center space-x-2">
+          <span class="text-sm text-gray-400">Total:</span>
+          <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-semibold">
+            <?= count($ordenes) ?> órdenes
+          </span>
+        </div>
       </div>
     </div>
   </div>

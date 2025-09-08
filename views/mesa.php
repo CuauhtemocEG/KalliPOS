@@ -228,21 +228,15 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
                             <i class="bi bi-x-circle mr-2"></i>Cancelar Orden
                         </button>
                         <?php endif; ?>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <?php if ($esAdministrador): ?>
                             <a href="<?= url('controllers/impresion_ticket.php?orden_id=' . $orden_id) ?>" target="_blank" class="block bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
                                 <i class="bi bi-printer mr-2"></i>Ticket PDF
                             </a>
-                            
-                            <!-- NUEVO: Generador ESC/POS para HostGator -->
-                            <a href="<?= url('controllers/ticket_escpos_hostgator.php?orden_id=' . $orden_id) ?>" target="_blank" class="block bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
-                                <i class="bi bi-code-square mr-2"></i>ESC/POS
-                                <div class="text-xs opacity-75 mt-1">Para HostGator</div>
-                            </a>
                         <?php endif; ?>
                         
                         <?php if ($metodo_impresion === 'navegador'): ?>
-                            <div class="<?= $esAdministrador ? '' : 'col-span-3' ?>">
+                            <div class="<?= $esAdministrador ? '' : 'col-span-2' ?>">
                                 <!-- Sistema Híbrido USB + Navegador -->
                                 <button onclick="imprimirTicketLocal(<?= $orden_id ?>)" class="block w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
                                     <i class="bi bi-lightning mr-2"></i>🖨️ Imprimir Ticket
@@ -250,7 +244,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
                                 </button>
                             </div>
                         <?php elseif ($impresora_configurada): ?>
-                            <div class="<?= $esAdministrador ? '' : 'col-span-3' ?>">
+                            <div class="<?= $esAdministrador ? '' : 'col-span-2' ?>">
                                 <!-- Sistema Híbrido USB + Navegador -->
                                 <button onclick="imprimirTicketLocal(<?= $orden_id ?>)" class="block w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
                                     <i class="bi bi-lightning mr-2"></i>🖨️ Imprimir Ticket
