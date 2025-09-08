@@ -270,6 +270,19 @@ class EmailSender {
             
             $mail = new PHPMailer\PHPMailer\PHPMailer(true);
             
+            // LOG de configuración SMTP
+            error_log('[SMTP] Host: ' . $this->smtpHost);
+            error_log('[SMTP] Puerto: ' . $this->smtpPort);
+            error_log('[SMTP] Usuario: ' . $this->smtpUsername);
+            error_log('[SMTP] From: ' . $this->fromEmail);
+            error_log('[SMTP] Usar SMTP: ' . ($this->useSmtp ? 'SI' : 'NO'));
+            
+            // Habilitar debug de PHPMailer
+            $mail->SMTPDebug = 2; // 2 = client+server, 3 = client, 4 = server
+            $mail->Debugoutput = function($str, $level) {
+                error_log('[PHPMailer] ' . $str);
+            };
+            
             // Configuración SMTP
             $mail->isSMTP();
             $mail->Host = $this->smtpHost;
