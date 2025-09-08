@@ -32,8 +32,8 @@ class EmailSender {
      */
     private function loadEmailConfig() {
         // Configuración desde base de datos
-        $this->smtpHost = $this->config->obtener('smtp_host', 'smtp.gmail.com');
-        $this->smtpPort = $this->config->obtener('smtp_port', 587);
+        $this->smtpHost = $this->config->obtener('smtp_host', 'smtp.titan.com');
+        $this->smtpPort = $this->config->obtener('smtp_port', 465);
         $this->smtpUsername = $this->config->obtener('smtp_username', '');
         $this->smtpPassword = $this->config->obtener('smtp_password', '');
         $this->fromEmail = $this->config->obtener('email_from', 'no-reply@restaurant.com');
@@ -289,7 +289,7 @@ class EmailSender {
             $mail->SMTPAuth = true;
             $mail->Username = $this->smtpUsername;
             $mail->Password = $this->smtpPassword;
-            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->SMTPSecure = 'ssl';
             $mail->Port = $this->smtpPort;
             $mail->CharSet = 'UTF-8';
             
