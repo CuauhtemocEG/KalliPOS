@@ -219,6 +219,7 @@ header('Content-Type: text/html; charset=utf-8');
         echo "<h2>🔍 Resultado del Detector de Impresoras</h2>";
         
         echo "<button class='btn' onclick='detectarImpresoras()'>🔄 Ejecutar Detección</button>";
+        echo "<button class='btn' onclick='detectarImpresorasSimple()'>🔄 Detección Simplificada</button>";
         echo "<div id='resultado-detector' style='margin-top: 10px;'></div>";
         echo "</div>";
 
@@ -287,37 +288,102 @@ header('Content-Type: text/html; charset=utf-8');
                     }
                 });
                 
-                const data = await response.json();
-                
-                let html = '<div class="code">';
-                html += '<strong>Resultado JSON:</strong><br>';
-                html += JSON.stringify(data, null, 2);
-                html += '</div>';
-                
-                if (data.success && data.impresoras.length > 0) {
-                    html += '<h3>Impresoras encontradas:</h3>';
-                    html += '<table>';
-                    html += '<tr><th>Nombre</th><th>Tipo</th><th>Estado</th><th>Puerto</th></tr>';
-                    
-                    data.impresoras.forEach(imp => {
-                        html += `<tr>`;
-                        html += `<td>${imp.nombre}</td>`;
-                        html += `<td>${imp.tipo}</td>`;
-                        html += `<td>${imp.estado}</td>`;
-                        html += `<td>${imp.puerto}</td>`;
-                        html += `</tr>`;
-                    });
-                    
-                    html += '</table>';
-                } else {
-                    html += '<div class="warning">No se encontraron impresoras automáticamente.</div>';
+                // Verificar si la respuesta es exitosa
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
                 }
                 
-                resultado.innerHTML = html;
+                // Obtener el texto de la respuesta primero
+                const responseText = await response.text();
+                
+                // Intentar parsear como JSON
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    // Si no es JSON válido, mostrar el texto raw
+                    resultado.innerHTML = `
+                        <div class="error">
+                            <strong>Error: Respuesta no es JSON válido</strong><br>
+                            <div class="code">${responseText.substring(0, 500)}${responseText.length > 500 ? '...' : ''}</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                mostrarResultado(data, resultado);
                 
             } catch (error) {
-                resultado.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                resultado.innerHTML = `<div class="error">Error de red: ${error.message}</div>`;
             }
+        }
+        
+        async function detectarImpresorasSimple() {
+            const resultado = document.getElementById('resultado-detector');
+            resultado.innerHTML = '<div style="color: blue;">🔄 Ejecutando detección simplificada...</div>';
+            
+            try {
+                const response = await fetch('detectar_impresoras_simple.php', {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const responseText = await response.text();
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    resultado.innerHTML = `
+                        <div class="error">
+                            <strong>Error: Respuesta no es JSON válido</strong><br>
+                            <div class="code">${responseText.substring(0, 500)}${responseText.length > 500 ? '...' : ''}</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                mostrarResultado(data, resultado);
+                
+            } catch (error) {
+                resultado.innerHTML = `<div class="error">Error de red: ${error.message}</div>`;
+            }
+        }
+        
+        function mostrarResultado(data, contenedor) {
+            let html = '<div class="code">';
+            html += '<strong>Resultado JSON:</strong><br>';
+            html += JSON.stringify(data, null, 2);
+            html += '</div>';
+            
+            if (data.success && data.impresoras && data.impresoras.length > 0) {
+                html += '<h3>Impresoras encontradas:</h3>';
+                html += '<table>';
+                html += '<tr><th>Nombre</th><th>Tipo</th><th>Estado</th><th>Puerto</th></tr>';
+                
+                data.impresoras.forEach(imp => {
+                    html += `<tr>`;
+                    html += `<td>${imp.nombre || 'N/A'}</td>`;
+                    html += `<td>${imp.tipo || 'N/A'}</td>`;
+                    html += `<td>${imp.estado || 'N/A'}</td>`;
+                    html += `<td>${imp.puerto || 'N/A'}</td>`;
+                    html += `</tr>`;
+                });
+                
+                html += '</table>';
+            } else {
+                html += '<div class="warning">No se encontraron impresoras automáticamente.</div>';
+            }
+            
+            if (data.debug) {
+                html += '<h3>Información de Debug:</h3>';
+                html += '<div class="code">' + JSON.stringify(data.debug, null, 2) + '</div>';
+            }
+            
+            contenedor.innerHTML = html;
         }
     </script>
 </body>

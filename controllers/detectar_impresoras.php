@@ -1,5 +1,17 @@
 <?php
+// Configurar manejo de errores para JSON
+error_reporting(0); // Suprimir warnings/notices para JSON limpio
+ini_set('display_errors', 0);
+
+// Limpiar cualquier salida previa
+if (ob_get_level()) {
+    ob_clean();
+}
+
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
 try {
     $impresoras = [];
@@ -69,12 +81,33 @@ try {
     ]);
 
 } catch (Exception $e) {
+    // Limpiar cualquier salida previa en caso de error
+    if (ob_get_level()) {
+        ob_clean();
+    }
+    
     echo json_encode([
         'success' => false,
         'message' => 'Error: ' . $e->getMessage(),
         'impresoras' => [],
         'debug' => [
-            'error_details' => $e->getTraceAsString()
+            'error_details' => $e->getFile() . ':' . $e->getLine(),
+            'error_message' => $e->getMessage()
+        ]
+    ]);
+} catch (Error $e) {
+    // Capturar errores fatales de PHP 7+
+    if (ob_get_level()) {
+        ob_clean();
+    }
+    
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error Fatal: ' . $e->getMessage(),
+        'impresoras' => [],
+        'debug' => [
+            'error_details' => $e->getFile() . ':' . $e->getLine(),
+            'error_message' => $e->getMessage()
         ]
     ]);
 }
