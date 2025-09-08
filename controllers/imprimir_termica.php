@@ -785,6 +785,111 @@ class ImpresorTermica {
     }
 }
 
+/**
+ * Funciones auxiliares para uso fuera de la clase
+ */
+
+/**
+ * Convertir número a texto para tickets
+ */
+function numeroATextoHelper($numero) {
+    $unidades = array('', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve',
+                     'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 
+                     'dieciocho', 'diecinueve', 'veinte');
+    
+    $decenas = array('', '', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa');
+    $centenas = array('', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos');
+    
+    if ($numero == 0) return 'cero pesos';
+    
+    $entero = floor($numero);
+    $decimales = round(($numero - $entero) * 100);
+    
+    $texto = '';
+    
+    // Procesar miles
+    if ($entero >= 1000) {
+        $miles = floor($entero / 1000);
+        if ($miles == 1) {
+            $texto .= 'mil ';
+        } else {
+            $texto .= numeroATextoHelper($miles) . ' mil ';
+        }
+        $entero = $entero % 1000;
+    }
+    
+    // Procesar centenas
+    if ($entero >= 100) {
+        $cen = floor($entero / 100);
+        if ($entero == 100) {
+            $texto .= 'cien ';
+        } else {
+            $texto .= $centenas[$cen] . ' ';
+        }
+        $entero = $entero % 100;
+    }
+    
+    // Procesar decenas y unidades
+    if ($entero >= 21) {
+        $dec = floor($entero / 10);
+        $uni = $entero % 10;
+        $texto .= $decenas[$dec];
+        if ($uni > 0) {
+            $texto .= ' y ' . $unidades[$uni];
+        }
+    } else if ($entero > 0) {
+        $texto .= $unidades[$entero];
+    }
+    
+    $texto .= ' pesos';
+    
+    if ($decimales > 0) {
+        $texto .= ' con ' . $decimales . '/100';
+    }
+    
+    return trim($texto);
+}
+
+/**
+ * Dividir texto largo en líneas para ticket térmico
+ */
+function dividirTextoParaTicketHelper($texto, $anchoMaximo = 32) {
+    $palabras = explode(' ', $texto);
+    $lineas = array();
+    $lineaActual = '';
+    
+    foreach ($palabras as $palabra) {
+        if (strlen($lineaActual . ' ' . $palabra) <= $anchoMaximo) {
+            $lineaActual .= ($lineaActual ? ' ' : '') . $palabra;
+        } else {
+            if ($lineaActual) {
+                $lineas[] = $lineaActual;
+            }
+            $lineaActual = $palabra;
+        }
+    }
+    
+    if ($lineaActual) {
+        $lineas[] = $lineaActual;
+    }
+    
+    return $lineas;
+}
+
+/**
+ * Formatear método de pago para ticket
+ */
+function formatearMetodoPagoHelper($metodo) {
+    $metodos = [
+        'efectivo' => 'EFECTIVO',
+        'tarjeta' => 'TARJETA',
+        'transferencia' => 'TRANSFERENCIA',
+        'cheque' => 'CHEQUE'
+    ];
+    
+    return $metodos[$metodo] ?? strtoupper($metodo);
+}
+
 // Si se llama directamente, procesar impresión
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
@@ -999,10 +1104,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $impresora->saltoLinea();
                 
                 // Total en texto (optimizado para tickets térmicos)
-                $totalTexto = $this->numeroATexto($orden['total']);
+                $totalTexto = numeroATextoHelper($orden['total']);
                 
                 // Dividir texto largo en líneas para mejor ajuste
-                $lineas = $this->dividirTextoParaTicket($totalTexto, 32);
+                $lineas = dividirTextoParaTicketHelper($totalTexto, 32);
                 foreach ($lineas as $linea) {
                     $impresora->texto($linea, 'center', false, 'normal');
                     $impresora->saltoLinea();
@@ -1011,7 +1116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Información del pago (siempre mostrar si la orden está cerrada)
                 if ($orden['estado'] === 'cerrada') {
                     $impresora->linea('-', 45);
-                    $impresora->texto('METODO DE PAGO: ' . $this->formatearMetodoPago($orden['metodo_pago'] ?? 'efectivo'), 'left', true);
+                    $impresora->texto('METODO DE PAGO: ' . formatearMetodoPagoHelper($orden['metodo_pago'] ?? 'efectivo'), 'left', true);
                     
                     if (($orden['metodo_pago'] === 'efectivo' || !isset($orden['metodo_pago'])) && isset($orden['dinero_recibido']) && $orden['dinero_recibido'] !== null) {
                         $impresora->texto('Dinero recibido: $' . number_format($orden['dinero_recibido'], 2), 'left');
@@ -1027,7 +1132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Información del pago (si se proporciona desde parámetros - para compatibilidad)
                 elseif (isset($input['metodo_pago'])) {
                     $impresora->linea('-', 45);
-                    $impresora->texto('METODO DE PAGO: ' . $this->formatearMetodoPago($input['metodo_pago']), 'left', true);
+                    $impresora->texto('METODO DE PAGO: ' . formatearMetodoPagoHelper($input['metodo_pago']), 'left', true);
                     
                     if ($input['metodo_pago'] === 'efectivo' && isset($input['dinero_recibido'])) {
                         $dineroRecibido = floatval($input['dinero_recibido']);
