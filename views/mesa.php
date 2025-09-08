@@ -311,7 +311,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
         <!-- Estado sin Orden -->
         <div class="bg-slate-800 rounded-2xl shadow-2xl border border-slate-600 p-8 text-center">
             <h3 class="text-white text-xl font-bold mb-2">No hay orden abierta</h3>
-            <form method="post" action="/POS/controllers/nueva_orden.php">
+            <form method="post" action="controllers/nueva_orden.php">
                 <input type="hidden" name="mesa_id" value="<?= $mesa_id ?>">
                 <button type="submit" class="bg-green-600 text-white py-3 px-6 rounded-xl">Abrir Nueva Orden</button>
             </form>
