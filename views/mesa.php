@@ -237,18 +237,18 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
                         
                         <?php if ($metodo_impresion === 'navegador'): ?>
                             <div class="<?= $esAdministrador ? '' : 'col-span-2' ?>">
-                                <!-- Impresión desde navegador -->
-                                <button onclick="imprimirTicketNavegador(<?= $orden_id ?>)" class="block w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
-                                    <i class="bi bi-globe mr-2"></i>🖨️ Ticket Local
-                                    <div class="text-xs opacity-75 mt-1">Desde Navegador</div>
+                                <!-- Sistema Híbrido USB + Navegador -->
+                                <button onclick="imprimirTicketLocal(<?= $orden_id ?>)" class="block w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
+                                    <i class="bi bi-lightning mr-2"></i>🖨️ Imprimir Ticket
+                                    <div class="text-xs opacity-75 mt-1">USB/ESC-POS + Navegador</div>
                                 </button>
                             </div>
                         <?php elseif ($impresora_configurada): ?>
                             <div class="<?= $esAdministrador ? '' : 'col-span-2' ?>">
-                                <!-- Impresión térmica ESC/POS -->
-                                <button onclick="imprimirTicketTermico(<?= $orden_id ?>)" class="block w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
-                                    <i class="bi bi-receipt mr-2"></i>Ticket Térmico
-                                    <div class="text-xs opacity-75 mt-1">ESC/POS Directo</div>
+                                <!-- Sistema Híbrido USB + Navegador -->
+                                <button onclick="imprimirTicketLocal(<?= $orden_id ?>)" class="block w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
+                                    <i class="bi bi-lightning mr-2"></i>🖨️ Imprimir Ticket
+                                    <div class="text-xs opacity-75 mt-1">USB/ESC-POS + Navegador</div>
                                 </button>
                             </div>
                         <?php else: ?>
@@ -275,6 +275,16 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
                                 </a>
                             </div>
                         <?php endif; ?>
+                        
+                        <!-- Botón de configuración de impresora híbrida -->
+                        <div class="text-center mt-2">
+                            <button onclick="configurarImpresora()" class="text-blue-400 hover:text-blue-300 text-sm transition-colors">
+                                <i class="bi bi-printer mr-1"></i>Configurar Impresora USB
+                            </button>
+                            <button onclick="imprimirPruebaLocal()" class="text-green-400 hover:text-green-300 text-sm transition-colors ml-4">
+                                <i class="bi bi-lightning mr-1"></i>Prueba Impresión
+                            </button>
+                        </div>
                         <form method="post" action="/POS/controllers/cerrar_orden.php" id="cerrar-orden-form">
                             <input type="hidden" name="orden_id" value="<?= $orden['id'] ?>">
                             <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition-colors">
@@ -1712,7 +1722,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
 </script>
 
 <!-- Incluir sistema de impresión térmica -->
-<script src="<?= url('js/impresion-termica.js') ?>"></script>
+<script src="<?= url('js/impresion-hibrida.js') ?>"></script>
 <script>
     // Hacer disponible la configuración de impresora para JavaScript
     window.configImpresoraNombre = '<?= $config_impresion['nombre_impresora'] ?? '' ?>';
