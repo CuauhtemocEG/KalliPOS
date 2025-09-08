@@ -333,20 +333,6 @@ document.addEventListener('DOMContentLoaded', function() {
     <div id="restaurantFloor" class="restaurant-floor bg-gray-800 border-2 border-dashed border-gray-600 rounded-xl position-relative" 
          style="height: 800px; width: 100%; overflow: visible; margin-top: 10px;">
       
-      <!-- // DEBUG: Info de mesas -->
-      <div style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.8); color: white; padding: 5px; font-size: 12px; z-index: 10000;">
-        DEBUG: <?= count($mesas) ?> mesas cargadas de la BD | <?= count($layout_positions) ?> layouts cargados
-        <button onclick="debugMesas()" style="margin-left: 10px; padding: 2px 5px; background: #007acc; color: white; border: none; border-radius: 3px;">
-          Debug JS
-        </button>
-        <button onclick="mostrarLayouts()" style="margin-left: 5px; padding: 2px 5px; background: #d97706; color: white; border: none; border-radius: 3px;">
-          Ver Layouts
-        </button>
-        <button onclick="testConexion()" style="margin-left: 5px; padding: 2px 5px; background: #059669; color: white; border: none; border-radius: 3px;">
-          Test Conexión
-        </button>
-      </div>
-      
       <!-- === MESAS DE LA BASE DE DATOS === -->
       <?php foreach ($mesas as $index => $mesa): ?>
         <?php
