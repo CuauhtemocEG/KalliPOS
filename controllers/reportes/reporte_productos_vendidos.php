@@ -15,7 +15,7 @@ $fechaHasta = $_GET['fecha_hasta'] ?? null;
 
 // Construir condición de fecha
 $condicionFecha = "";
-$textoPeriodo = "del día de hoy";
+$textoPeriodo = "del dia de hoy";
 
 if ($fechaDesde && $fechaHasta) {
     $condicionFecha = "AND DATE(o.creada_en) BETWEEN '$fechaDesde' AND '$fechaHasta'";

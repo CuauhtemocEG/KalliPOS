@@ -1773,7 +1773,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
         }
     });
     
-    // 🖨️ Función para imprimir ticket desde navegador
+    // 🖨️ Función para imprimir ticket desde navegador (MEJORADA PARA HOSTGATOR)
     function imprimirTicketNavegador(ordenId) {
         // Validar que existe la orden
         if (!ordenId) {
@@ -1787,78 +1787,160 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
         
         // Mostrar loading
         Swal.fire({
-            title: 'Preparando ticket...',
-            text: 'Abriendo ventana de impresión',
+            title: 'Preparando ticket optimizado...',
+            text: 'Generando ticket para HostGator',
             allowOutsideClick: false,
             didOpen: () => {
                 Swal.showLoading();
             }
         });
         
-        // Abrir ventana del ticket
+        // 🚀 NUEVA URL OPTIMIZADA para HostGator
+        const urlTicketOptimizado = `<?= url('controllers/ticket_navegador_optimizado.php') ?>?orden_id=${ordenId}`;
+        
+        // Abrir ventana del ticket con configuración optimizada
         const ventanaTicket = window.open(
-            `<?= url('controllers/ticket_local.php') ?>?orden_id=${ordenId}`, 
+            urlTicketOptimizado, 
             '_blank', 
-            'width=450,height=700,scrollbars=yes,resizable=yes'
+            'width=420,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no'
         );
         
         // Verificar si se abrió la ventana
         if (ventanaTicket) {
             Swal.close();
             
-            // Mostrar instrucciones
+            // 🎯 INSTRUCCIONES ESPECÍFICAS PARA HOSTGATOR
             Swal.fire({
                 icon: 'success',
-                title: '🎫 ¡Ticket Listo!',
+                title: '🎫 ¡Ticket Optimizado para HostGator!',
                 html: `
                     <div class="text-left">
-                        <p class="mb-3">Se ha abierto el ticket en una nueva ventana.</p>
+                        <div class="bg-blue-50 p-3 rounded border border-blue-200 mb-3">
+                            <h4 class="font-semibold text-blue-800 mb-2">🌐 Sistema HostGator Activo</h4>
+                            <p class="text-blue-700 text-sm">Ticket optimizado para hosting compartido</p>
+                        </div>
+                        
                         <div class="bg-green-50 p-3 rounded border border-green-200">
-                            <h4 class="font-semibold text-green-800 mb-2">📋 Para imprimir:</h4>
+                            <h4 class="font-semibold text-green-800 mb-2">📋 Pasos para imprimir:</h4>
                             <ol class="text-sm text-green-700 space-y-1 text-left">
-                                <li>1. Ve a la nueva ventana del ticket</li>
-                                <li>2. Presiona <code class="bg-gray-200 px-1 rounded">Ctrl+P</code> (Windows) o <code class="bg-gray-200 px-1 rounded">Cmd+P</code> (Mac)</li>
-                                <li>3. Selecciona tu impresora térmica</li>
-                                <li>4. Ajusta el tamaño de papel si es necesario</li>
-                                <li>5. ¡Presiona Imprimir!</li>
+                                <li><strong>1. 🖨️ Haz clic en "Imprimir Ticket"</strong> en la nueva ventana</li>
+                                <li><strong>2. 📄 Configura el papel:</strong>
+                                    <ul class="ml-4 mt-1 space-y-1">
+                                        <li>• <strong>Impresora térmica:</strong> 80mm x continuo</li>
+                                        <li>• <strong>Impresora normal:</strong> Tamaño carta vertical</li>
+                                    </ul>
+                                </li>
+                                <li><strong>3. ⚙️ Ajusta márgenes:</strong> Mínimos (0mm)</li>
+                                <li><strong>4. ✅ ¡Presiona Imprimir!</strong></li>
                             </ol>
                         </div>
-                        <div class="bg-blue-50 p-2 rounded border border-blue-200 mt-2">
-                            <p class="text-blue-800 text-xs">
-                                💡 <strong>Consejo:</strong> En la ventana del ticket hay botones para facilitar la impresión.
+                        
+                        <div class="bg-yellow-50 p-2 rounded border border-yellow-200 mt-3">
+                            <p class="text-yellow-800 text-xs">
+                                💡 <strong>Optimización HostGator:</strong> El ticket se genera completamente en tu navegador, sin depender del servidor.
+                            </p>
+                        </div>
+                        
+                        <div class="bg-red-50 p-2 rounded border border-red-200 mt-2">
+                            <p class="text-red-800 text-xs">
+                                🚫 <strong>Limitación:</strong> HostGator no permite impresión USB directa. Solo funciona vía navegador.
                             </p>
                         </div>
                     </div>
                 `,
                 confirmButtonText: '✅ Entendido',
-                width: '500px'
+                width: '600px',
+                showCancelButton: true,
+                cancelButtonText: '🔧 Ver Configuración',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.dismiss === Swal.DismissReason.cancel) {
+                    // Mostrar configuración adicional
+                    mostrarConfiguracionHostGator();
+                }
             });
         } else {
             Swal.close();
             Swal.fire({
                 icon: 'error',
-                title: 'Ventana Bloqueada',
+                title: 'Ventana Bloqueada por Navegador',
                 html: `
                     <div class="text-left">
                         <p class="mb-3">El navegador bloqueó la ventana emergente.</p>
                         <div class="bg-yellow-50 p-3 rounded border border-yellow-200">
-                            <h4 class="font-semibold text-yellow-800 mb-2">🔧 Solución:</h4>
-                            <ol class="text-sm text-yellow-700 space-y-1">
-                                <li>1. Busca el ícono de "ventanas bloqueadas" en la barra de direcciones</li>
-                                <li>2. Haz clic y selecciona "Permitir ventanas emergentes"</li>
-                                <li>3. Vuelve a intentar imprimir el ticket</li>
+                            <h4 class="font-semibold text-yellow-800 mb-2">🔧 Soluciones para HostGator:</h4>
+                            <ol class="text-sm text-yellow-700 space-y-2">
+                                <li><strong>1. Permitir ventanas emergentes:</strong>
+                                    <ul class="ml-4 mt-1">
+                                        <li>• Busca el ícono 🚫 en la barra de direcciones</li>
+                                        <li>• Haz clic y selecciona "Permitir ventanas emergentes"</li>
+                                    </ul>
+                                </li>
+                                <li><strong>2. Alternativa sin popup:</strong>
+                                    <ul class="ml-4 mt-1">
+                                        <li>• Usa "Ticket PDF" desde el menú de la orden</li>
+                                        <li>• O abre en nueva pestaña (Ctrl+Click)</li>
+                                    </ul>
+                                </li>
                             </ol>
                         </div>
                     </div>
                 `,
                 confirmButtonText: '🔄 Volver a Intentar',
-                confirmButtonColor: '#3B82F6'
+                showCancelButton: true,
+                cancelButtonText: '📄 Usar Ticket PDF',
+                confirmButtonColor: '#3B82F6',
+                cancelButtonColor: '#28a745'
             }).then((result) => {
                 if (result.isConfirmed) {
                     imprimirTicketNavegador(ordenId);
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    // Abrir en nueva pestaña como alternativa
+                    window.open(urlTicketOptimizado, '_blank');
                 }
             });
         }
+    }
+    
+    // 🔧 Función para mostrar configuración específica de HostGator
+    function mostrarConfiguracionHostGator() {
+        Swal.fire({
+            title: '⚙️ Configuración para HostGator',
+            html: `
+                <div class="text-left">
+                    <div class="bg-blue-50 p-3 rounded border border-blue-200 mb-3">
+                        <h4 class="font-semibold text-blue-800 mb-2">🌐 Limitaciones de HostGator:</h4>
+                        <ul class="text-blue-700 text-sm space-y-1">
+                            <li>• ❌ No soporta comandos USB (lpr, shell_exec)</li>
+                            <li>• ❌ No puede acceder a impresoras locales</li>
+                            <li>• ✅ Solo funciona impresión vía navegador</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 p-3 rounded border border-green-200 mb-3">
+                        <h4 class="font-semibold text-green-800 mb-2">✅ Soluciones Funcionales:</h4>
+                        <ol class="text-green-700 text-sm space-y-1">
+                            <li><strong>1. Método "Navegador":</strong> Ya configurado ✅</li>
+                            <li><strong>2. Tickets PDF:</strong> Descarga y imprime</li>
+                            <li><strong>3. Email automático:</strong> Envía tickets por correo</li>
+                            <li><strong>4. WhatsApp Business:</strong> Envía tickets a clientes</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="bg-yellow-50 p-3 rounded border border-yellow-200">
+                        <h4 class="font-semibold text-yellow-800 mb-2">💡 Recomendaciones:</h4>
+                        <ul class="text-yellow-700 text-sm space-y-1">
+                            <li>• Mantén el método "Navegador" activado</li>
+                            <li>• Configura una impresora térmica USB en tu laptop</li>
+                            <li>• Usa Chrome o Firefox para mejor compatibilidad</li>
+                            <li>• Considera un servidor local para futuro</li>
+                        </ul>
+                    </div>
+                </div>
+            `,
+            confirmButtonText: '✅ Entendido',
+            width: '600px'
+        });
     }
 </script>
 </div>

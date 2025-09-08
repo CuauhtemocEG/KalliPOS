@@ -79,31 +79,6 @@ class ConfiguracionSistema {
     }
     
     /**
-     * Obtener números de SMS para autorización
-     */
-    public function obtenerNumerosSMS() {
-        $numero1 = $this->obtener('sms_autorizacion_numero1');
-        $numero2 = $this->obtener('sms_autorizacion_numero2');
-        
-        $numeros = [];
-        if ($numero1 && $numero1 !== '+52XXXXXXXXXX') {
-            $numeros[] = $numero1;
-        }
-        if ($numero2 && $numero2 !== '+52XXXXXXXXXX') {
-            $numeros[] = $numero2;
-        }
-        
-        return $numeros;
-    }
-    
-    /**
-     * Verificar si SMS está habilitado
-     */
-    public function smsHabilitado() {
-        return $this->obtener('sms_habilitado', false);
-    }
-    
-    /**
      * Obtener tiempo de expiración para códigos PIN (en minutos)
      */
     public function tiempoExpiracionPIN() {
