@@ -13,20 +13,17 @@ $datosPrueba = [
         (object)[
             'nombre' => 'Producto de Prueba 1', 
             'cantidad' => 2, 
-            'precio' => 25.00,
-            'categoria_nombre' => 'Bebidas'
+            'precio' => 25.00
         ],
         (object)[
             'nombre' => 'Producto de Prueba 2', 
             'cantidad' => 1, 
-            'precio' => 15.50,
-            'categoria_nombre' => 'Comida'
+            'precio' => 15.50
         ],
         (object)[
             'nombre' => 'Producto de Prueba 3', 
             'cantidad' => 3, 
-            'precio' => 8.75,
-            'categoria_nombre' => 'Postres'
+            'precio' => 8.75
         ]
     ],
     'subtotal' => 76.00,
@@ -68,13 +65,11 @@ if ($esPrueba) {
         
         // Obtener productos de la orden
         $stmt = $pdo->prepare("
-            SELECT op.*, p.nombre, p.precio, p.categoria_id,
-                   c.nombre as categoria_nombre
+            SELECT op.*, p.nombre, p.precio
             FROM orden_productos op
             JOIN productos p ON op.producto_id = p.id
-            LEFT JOIN categorias c ON p.categoria_id = c.id
             WHERE op.orden_id = ?
-            ORDER BY c.nombre, p.nombre
+            ORDER BY p.nombre
         ");
         $stmt->execute([$orden_id]);
         $productos = $stmt->fetchAll();
@@ -201,22 +196,12 @@ if ($esPrueba) {
         <!-- Productos -->
         <?php 
         $subtotal = 0;
-        $categoria_actual = '';
         
         foreach ($productos as $producto): 
             // Acceso a propiedades para objetos y arrays
-            $cat_nombre = is_object($producto) ? $producto->categoria_nombre : $producto['categoria_nombre'];
             $nombre = is_object($producto) ? $producto->nombre : $producto['nombre'];
             $cantidad = is_object($producto) ? $producto->cantidad : $producto['cantidad'];
             $precio = is_object($producto) ? $producto->precio : ($producto['precio_unitario'] ?? $producto['precio']);
-            
-            // Mostrar categoría si cambió
-            if ($categoria_actual !== $cat_nombre) {
-                $categoria_actual = $cat_nombre;
-                if ($categoria_actual) {
-                    echo "<div class='bold'>--- " . htmlspecialchars($categoria_actual) . " ---</div>";
-                }
-            }
             
             $total_producto = $cantidad * $precio;
             $subtotal += $total_producto;
