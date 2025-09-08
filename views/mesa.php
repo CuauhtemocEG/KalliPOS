@@ -1712,10 +1712,56 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
 </script>
 
 <!-- Incluir sistema de impresión térmica -->
-<script src="<?= asset('js/impresion-termica.js') ?>"></script>
+<script src="<?= url('js/impresion-termica.js') ?>"></script>
 <script>
     // Hacer disponible la configuración de impresora para JavaScript
     window.configImpresoraNombre = '<?= $config_impresion['nombre_impresora'] ?? '' ?>';
+    
+    // Log de depuración para verificar carga de archivos
+    console.log('🔧 Sistema POS - Mesa.php cargado');
+    console.log('🖨️ Configuración impresora:', window.configImpresoraNombre);
+    
+    // Verificar que la función de impresión térmica esté disponible
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof imprimirTicketTermico === 'undefined') {
+            console.warn('⚠️ Función imprimirTicketTermico no encontrada, creando respaldo');
+            
+            // Función de respaldo para impresión térmica
+            window.imprimirTicketTermico = function(ordenId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sistema de Impresión No Disponible',
+                    html: `
+                        <div class="text-left">
+                            <p>El sistema de impresión térmica no está disponible.</p>
+                            <div class="bg-blue-50 p-3 rounded border border-blue-200 mt-3">
+                                <h4 class="font-semibold text-blue-800 mb-2">💡 Alternativas:</h4>
+                                <ol class="text-sm text-blue-700 space-y-1">
+                                    <li>1. Usa el método "Navegador" en configuración</li>
+                                    <li>2. O descarga el ticket en PDF</li>
+                                </ol>
+                            </div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: '🖨️ Usar Navegador',
+                    cancelButtonText: '📄 Ticket PDF',
+                    confirmButtonColor: '#10B981',
+                    cancelButtonColor: '#3B82F6'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Redirigir a configuración para cambiar método
+                        window.location.href = 'index.php?page=configuracion&tab=impresoras';
+                    } else if (result.dismiss === Swal.DismissReason.cancel) {
+                        // Abrir PDF
+                        window.open(`<?= url('controllers/impresion_ticket.php') ?>?orden_id=${ordenId}`, '_blank');
+                    }
+                });
+            };
+        } else {
+            console.log('✅ Función imprimirTicketTermico disponible');
+        }
+    });
     
     // 🖨️ Función para imprimir ticket desde navegador
     function imprimirTicketNavegador(ordenId) {
