@@ -4,6 +4,10 @@
  * Contiene todas las variables de entorno, API keys y configuraciones
  */
 
+if (!defined('LOG_AUTH_ATTEMPTS')) {
+    define('LOG_AUTH_ATTEMPTS', true);
+}
+
 // Configuración de la base de datos
 define('DB_HOST', 'localhost:3306');
 define('DB_NAME', 'kallijag_pos');
