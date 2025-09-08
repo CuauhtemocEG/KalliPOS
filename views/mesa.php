@@ -33,7 +33,6 @@ $config = new ConfiguracionSistema($pdo);
 $config_impresion = $config->obtenerTodasConfiguraciones();
 $impresion_automatica = ($config_impresion['impresion_automatica'] ?? '0') == '1';
 $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
-$metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
 ?>
 
 <!-- Estilos específicos para mesa.php -->
@@ -230,25 +229,17 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
                         <?php endif; ?>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <?php if ($esAdministrador): ?>
-                            <a href="<?= url('controllers/impresion_ticket.php?orden_id=' . $orden_id) ?>" target="_blank" class="block bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
+                            <a href="controllers/impresion_ticket.php?orden_id=<?= $orden_id ?>" target="_blank" class="block bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
                                 <i class="bi bi-printer mr-2"></i>Ticket PDF
                             </a>
                         <?php endif; ?>
                         
-                        <?php if ($metodo_impresion === 'navegador'): ?>
+                        <?php if ($impresora_configurada): ?>
                             <div class="<?= $esAdministrador ? '' : 'col-span-2' ?>">
-                                <!-- Sistema Híbrido USB + Navegador -->
-                                <button onclick="imprimirTicketLocal(<?= $orden_id ?>)" class="block w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
-                                    <i class="bi bi-lightning mr-2"></i>🖨️ Imprimir Ticket
-                                    <div class="text-xs opacity-75 mt-1">USB/ESC-POS + Navegador</div>
-                                </button>
-                            </div>
-                        <?php elseif ($impresora_configurada): ?>
-                            <div class="<?= $esAdministrador ? '' : 'col-span-2' ?>">
-                                <!-- Sistema Híbrido USB + Navegador -->
-                                <button onclick="imprimirTicketLocal(<?= $orden_id ?>)" class="block w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
-                                    <i class="bi bi-lightning mr-2"></i>🖨️ Imprimir Ticket
-                                    <div class="text-xs opacity-75 mt-1">USB/ESC-POS + Navegador</div>
+                                <!-- Impresión térmica ESC/POS -->
+                                <button onclick="imprimirTicketTermico(<?= $orden_id ?>)" class="block w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
+                                    <i class="bi bi-receipt mr-2"></i>Ticket Térmico
+                                    <div class="text-xs opacity-75 mt-1">ESC/POS Directo</div>
                                 </button>
                             </div>
                         <?php else: ?>
@@ -275,16 +266,6 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
                                 </a>
                             </div>
                         <?php endif; ?>
-                        
-                        <!-- Botón de configuración de impresora híbrida -->
-                        <div class="text-center mt-2">
-                            <button onclick="configurarImpresora()" class="text-blue-400 hover:text-blue-300 text-sm transition-colors">
-                                <i class="bi bi-printer mr-1"></i>Configurar Impresora USB
-                            </button>
-                            <button onclick="imprimirPruebaLocal()" class="text-green-400 hover:text-green-300 text-sm transition-colors ml-4">
-                                <i class="bi bi-lightning mr-1"></i>Prueba Impresión
-                            </button>
-                        </div>
                         <form method="post" action="controllers/cerrar_orden.php" id="cerrar-orden-form">
                             <input type="hidden" name="orden_id" value="<?= $orden['id'] ?>">
                             <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition-colors">
@@ -333,12 +314,6 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
     const mesaId = <?= $mesa_id ?>;
     const ordenId = <?= $orden_id ?>;
     const esAdministrador = <?= $esAdministrador ? 'true' : 'false' ?>;
-    
-    // Configuración de URLs
-    const BASE_URL = '<?= getBaseUrl() ?>';
-    const CONTROLLERS_URL = '<?= url('controllers/') ?>';
-    const ASSETS_URL = '<?= ASSETS_URL ?>';
-    const API_URL = '<?= API_BASE_URL ?>';
 
     /** 🔹 Funciones globales para manejo de efectivo y cambio */
     function toggleEfectivoFields() {
@@ -438,7 +413,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
 
     /** 🔹 Cargar Categorías */
     function cargarCategorias() {
-        fetch(CONTROLLERS_URL + 'categorias.php')
+        fetch('controllers/categorias.php')
             .then(function(r) {
                 return r.json();
             })
@@ -486,7 +461,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
         if (cat_id === undefined) cat_id = 0;
         if (q === undefined) q = '';
 
-        fetch(CONTROLLERS_URL + 'buscar_productos.php?cat_id=' + cat_id + '&q=' + encodeURIComponent(q))
+        fetch('controllers/buscar_productos.php?cat_id=' + cat_id + '&q=' + encodeURIComponent(q))
             .then(function(r) {
                 return r.json();
             })
@@ -495,7 +470,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
                 data.forEach(function(prod) {
                     html += '<div class="product-card group bg-gradient-to-br from-slate-700 to-slate-600 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 cursor-pointer border border-slate-500 hover:border-blue-400" onclick="agregarProductoMesa(' + prod.id + ')">' +
                         '<div class="aspect-square overflow-hidden bg-slate-800">' +
-                        '<img src="' + ASSETS_URL + 'img/' + (prod.imagen || 'noimg.png') + '" ' +
+                        '<img src="assets/img/' + (prod.imagen || 'noimg.png') + '" ' +
                         'alt="' + prod.nombre + '"' +
                         'class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"' +
                         'onerror="this.src=\'assets/img/noimg.png\'">' +
@@ -532,7 +507,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
 
     /** 🔹 Agregar producto */
     function agregarProductoMesa(producto_id) {
-        fetch(CONTROLLERS_URL + 'newPos/agregar_producto_orden.php', {
+        fetch('controllers/newPos/agregar_producto_orden.php', {
                 method: 'POST',
                 body: new URLSearchParams({
                     producto_id: producto_id,
@@ -760,7 +735,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
             }
         });
 
-        fetch(CONTROLLERS_URL + 'newPos/solicitar_cancelacion.php', {
+        fetch('controllers/newPos/solicitar_cancelacion.php', {
                 method: 'POST',
                 body: new URLSearchParams({
                     orden_producto_id: ordenProductoId,
@@ -805,7 +780,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
 
     /** 🔹 Cargar Orden */
     function cargarOrden() {
-        fetch(CONTROLLERS_URL + 'newPos/orden_actual.php?orden_id=' + ordenId)
+        fetch('controllers/newPos/orden_actual.php?orden_id=' + ordenId)
             .then(function(r) {
                 if (!r.ok) {
                     throw new Error('Error HTTP: ' + r.status);
@@ -965,7 +940,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
                         let val = Math.max(1, parseInt(this.value));
                         this.classList.add('animate-pulse');
 
-                        fetch(CONTROLLERS_URL + 'newPos/actualizar_producto_orden.php', {
+                        fetch('controllers/newPos/actualizar_producto_orden.php', {
                             method: 'POST',
                             body: new URLSearchParams({
                                 producto_id: this.getAttribute('data-id'),
@@ -1156,7 +1131,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
                                 if (result.isConfirmed) {
                                     button.classList.add('animate-pulse');
 
-                                    fetch(CONTROLLERS_URL + 'newPos/actualizar_producto_orden.php', {
+                                    fetch('controllers/newPos/actualizar_producto_orden.php', {
                                         method: 'POST',
                                         body: new URLSearchParams({
                                             producto_id: productoId,
@@ -1259,7 +1234,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
                             }
                         });
 
-                        fetch(CONTROLLERS_URL + 'newPos/cancelar_orden.php', {
+                        fetch('controllers/newPos/cancelar_orden.php', {
                                 method: 'POST',
                                 body: new URLSearchParams({
                                     orden_id: ordenId
@@ -1303,7 +1278,7 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
                 e.preventDefault();
 
                 // Verificar si hay productos sin preparar antes de permitir cerrar
-                fetch(CONTROLLERS_URL + 'newPos/orden_actual.php?orden_id=' + ordenId)
+                fetch('/POS/controllers/newPos/orden_actual.php?orden_id=' + ordenId)
                     .then(function(r) {
                         if (!r.ok) {
                             throw new Error('Error HTTP: ' + r.status + ' ' + r.statusText);
@@ -1722,225 +1697,9 @@ $metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
 </script>
 
 <!-- Incluir sistema de impresión térmica -->
-<script src="<?= url('js/impresion-hibrida.js') ?>"></script>
+<script src="js/impresion-termica.js"></script>
 <script>
     // Hacer disponible la configuración de impresora para JavaScript
     window.configImpresoraNombre = '<?= $config_impresion['nombre_impresora'] ?? '' ?>';
-    
-    // Log de depuración para verificar carga de archivos
-    console.log('🔧 Sistema POS - Mesa.php cargado');
-    console.log('🖨️ Configuración impresora:', window.configImpresoraNombre);
-    
-    // Verificar que la función de impresión térmica esté disponible
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof imprimirTicketTermico === 'undefined') {
-            console.warn('⚠️ Función imprimirTicketTermico no encontrada, creando respaldo');
-            
-            // Función de respaldo para impresión térmica
-            window.imprimirTicketTermico = function(ordenId) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Sistema de Impresión No Disponible',
-                    html: `
-                        <div class="text-left">
-                            <p>El sistema de impresión térmica no está disponible.</p>
-                            <div class="bg-blue-50 p-3 rounded border border-blue-200 mt-3">
-                                <h4 class="font-semibold text-blue-800 mb-2">💡 Alternativas:</h4>
-                                <ol class="text-sm text-blue-700 space-y-1">
-                                    <li>1. Usa el método "Navegador" en configuración</li>
-                                    <li>2. O descarga el ticket en PDF</li>
-                                </ol>
-                            </div>
-                        </div>
-                    `,
-                    showCancelButton: true,
-                    confirmButtonText: '🖨️ Usar Navegador',
-                    cancelButtonText: '📄 Ticket PDF',
-                    confirmButtonColor: '#10B981',
-                    cancelButtonColor: '#3B82F6'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Redirigir a configuración para cambiar método
-                        window.location.href = 'index.php?page=configuracion&tab=impresoras';
-                    } else if (result.dismiss === Swal.DismissReason.cancel) {
-                        // Abrir PDF
-                        window.open(`<?= url('controllers/impresion_ticket.php') ?>?orden_id=${ordenId}`, '_blank');
-                    }
-                });
-            };
-        } else {
-            console.log('✅ Función imprimirTicketTermico disponible');
-        }
-    });
-    
-    // 🖨️ Función para imprimir ticket desde navegador (MEJORADA PARA HOSTGATOR)
-    function imprimirTicketNavegador(ordenId) {
-        // Validar que existe la orden
-        if (!ordenId) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se encontró el ID de la orden'
-            });
-            return;
-        }
-        
-        // Mostrar loading
-        Swal.fire({
-            title: 'Preparando ticket optimizado...',
-            text: 'Generando ticket para HostGator',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-        
-        // 🚀 NUEVA URL OPTIMIZADA para HostGator
-        const urlTicketOptimizado = `<?= url('controllers/ticket_navegador_optimizado.php') ?>?orden_id=${ordenId}`;
-        
-        // Abrir ventana del ticket con configuración optimizada
-        const ventanaTicket = window.open(
-            urlTicketOptimizado, 
-            '_blank', 
-            'width=420,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no'
-        );
-        
-        // Verificar si se abrió la ventana
-        if (ventanaTicket) {
-            Swal.close();
-            
-            // 🎯 INSTRUCCIONES ESPECÍFICAS PARA HOSTGATOR
-            Swal.fire({
-                icon: 'success',
-                title: '🎫 ¡Ticket Optimizado para HostGator!',
-                html: `
-                    <div class="text-left">
-                        <div class="bg-blue-50 p-3 rounded border border-blue-200 mb-3">
-                            <h4 class="font-semibold text-blue-800 mb-2">🌐 Sistema HostGator Activo</h4>
-                            <p class="text-blue-700 text-sm">Ticket optimizado para hosting compartido</p>
-                        </div>
-                        
-                        <div class="bg-green-50 p-3 rounded border border-green-200">
-                            <h4 class="font-semibold text-green-800 mb-2">📋 Pasos para imprimir:</h4>
-                            <ol class="text-sm text-green-700 space-y-1 text-left">
-                                <li><strong>1. 🖨️ Haz clic en "Imprimir Ticket"</strong> en la nueva ventana</li>
-                                <li><strong>2. 📄 Configura el papel:</strong>
-                                    <ul class="ml-4 mt-1 space-y-1">
-                                        <li>• <strong>Impresora térmica:</strong> 80mm x continuo</li>
-                                        <li>• <strong>Impresora normal:</strong> Tamaño carta vertical</li>
-                                    </ul>
-                                </li>
-                                <li><strong>3. ⚙️ Ajusta márgenes:</strong> Mínimos (0mm)</li>
-                                <li><strong>4. ✅ ¡Presiona Imprimir!</strong></li>
-                            </ol>
-                        </div>
-                        
-                        <div class="bg-yellow-50 p-2 rounded border border-yellow-200 mt-3">
-                            <p class="text-yellow-800 text-xs">
-                                💡 <strong>Optimización HostGator:</strong> El ticket se genera completamente en tu navegador, sin depender del servidor.
-                            </p>
-                        </div>
-                        
-                        <div class="bg-red-50 p-2 rounded border border-red-200 mt-2">
-                            <p class="text-red-800 text-xs">
-                                🚫 <strong>Limitación:</strong> HostGator no permite impresión USB directa. Solo funciona vía navegador.
-                            </p>
-                        </div>
-                    </div>
-                `,
-                confirmButtonText: '✅ Entendido',
-                width: '600px',
-                showCancelButton: true,
-                cancelButtonText: '🔧 Ver Configuración',
-                cancelButtonColor: '#6c757d'
-            }).then((result) => {
-                if (result.dismiss === Swal.DismissReason.cancel) {
-                    // Mostrar configuración adicional
-                    mostrarConfiguracionHostGator();
-                }
-            });
-        } else {
-            Swal.close();
-            Swal.fire({
-                icon: 'error',
-                title: 'Ventana Bloqueada por Navegador',
-                html: `
-                    <div class="text-left">
-                        <p class="mb-3">El navegador bloqueó la ventana emergente.</p>
-                        <div class="bg-yellow-50 p-3 rounded border border-yellow-200">
-                            <h4 class="font-semibold text-yellow-800 mb-2">🔧 Soluciones para HostGator:</h4>
-                            <ol class="text-sm text-yellow-700 space-y-2">
-                                <li><strong>1. Permitir ventanas emergentes:</strong>
-                                    <ul class="ml-4 mt-1">
-                                        <li>• Busca el ícono 🚫 en la barra de direcciones</li>
-                                        <li>• Haz clic y selecciona "Permitir ventanas emergentes"</li>
-                                    </ul>
-                                </li>
-                                <li><strong>2. Alternativa sin popup:</strong>
-                                    <ul class="ml-4 mt-1">
-                                        <li>• Usa "Ticket PDF" desde el menú de la orden</li>
-                                        <li>• O abre en nueva pestaña (Ctrl+Click)</li>
-                                    </ul>
-                                </li>
-                            </ol>
-                        </div>
-                    </div>
-                `,
-                confirmButtonText: '🔄 Volver a Intentar',
-                showCancelButton: true,
-                cancelButtonText: '📄 Usar Ticket PDF',
-                confirmButtonColor: '#3B82F6',
-                cancelButtonColor: '#28a745'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    imprimirTicketNavegador(ordenId);
-                } else if (result.dismiss === Swal.DismissReason.cancel) {
-                    // Abrir en nueva pestaña como alternativa
-                    window.open(urlTicketOptimizado, '_blank');
-                }
-            });
-        }
-    }
-    
-    // 🔧 Función para mostrar configuración específica de HostGator
-    function mostrarConfiguracionHostGator() {
-        Swal.fire({
-            title: '⚙️ Configuración para HostGator',
-            html: `
-                <div class="text-left">
-                    <div class="bg-blue-50 p-3 rounded border border-blue-200 mb-3">
-                        <h4 class="font-semibold text-blue-800 mb-2">🌐 Limitaciones de HostGator:</h4>
-                        <ul class="text-blue-700 text-sm space-y-1">
-                            <li>• ❌ No soporta comandos USB (lpr, shell_exec)</li>
-                            <li>• ❌ No puede acceder a impresoras locales</li>
-                            <li>• ✅ Solo funciona impresión vía navegador</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="bg-green-50 p-3 rounded border border-green-200 mb-3">
-                        <h4 class="font-semibold text-green-800 mb-2">✅ Soluciones Funcionales:</h4>
-                        <ol class="text-green-700 text-sm space-y-1">
-                            <li><strong>1. Método "Navegador":</strong> Ya configurado ✅</li>
-                            <li><strong>2. Tickets PDF:</strong> Descarga y imprime</li>
-                            <li><strong>3. Email automático:</strong> Envía tickets por correo</li>
-                            <li><strong>4. WhatsApp Business:</strong> Envía tickets a clientes</li>
-                        </ol>
-                    </div>
-                    
-                    <div class="bg-yellow-50 p-3 rounded border border-yellow-200">
-                        <h4 class="font-semibold text-yellow-800 mb-2">💡 Recomendaciones:</h4>
-                        <ul class="text-yellow-700 text-sm space-y-1">
-                            <li>• Mantén el método "Navegador" activado</li>
-                            <li>• Configura una impresora térmica USB en tu laptop</li>
-                            <li>• Usa Chrome o Firefox para mejor compatibilidad</li>
-                            <li>• Considera un servidor local para futuro</li>
-                        </ul>
-                    </div>
-                </div>
-            `,
-            confirmButtonText: '✅ Entendido',
-            width: '600px'
-        });
-    }
 </script>
 </div>
