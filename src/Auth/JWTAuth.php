@@ -74,8 +74,8 @@ class JWTAuth {
         $jti = bin2hex(random_bytes(16));
         
         $payload = [
-            'iss' => APP_URL,
-            'aud' => APP_URL,
+            'iss' => BASE_URL,
+            'aud' => BASE_URL,
             'iat' => $issuedAt,
             'exp' => $expirationTime,
             'jti' => $jti,
