@@ -9,7 +9,6 @@ $datosPrueba = [
     'id' => 'PRUEBA-001',
     'fecha_creacion' => date('Y-m-d H:i:s'),
     'mesa_nombre' => 'Configuración',
-    'mesa_descripcion' => 'Ticket de Prueba',
     'productos' => [
         (object)[
             'nombre' => 'Producto de Prueba 1', 
@@ -55,7 +54,7 @@ if ($esPrueba) {
         
         // Obtener datos de la orden
         $stmt = $pdo->prepare("
-            SELECT o.*, m.nombre as mesa_nombre, m.descripcion as mesa_descripcion
+            SELECT o.*, m.nombre as mesa_nombre
             FROM ordenes o 
             JOIN mesas m ON o.mesa_id = m.id 
             WHERE o.id = ?
