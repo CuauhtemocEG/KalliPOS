@@ -33,6 +33,7 @@ $config = new ConfiguracionSistema($pdo);
 $config_impresion = $config->obtenerTodasConfiguraciones();
 $impresion_automatica = ($config_impresion['impresion_automatica'] ?? '0') == '1';
 $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
+$metodo_impresion = $config_impresion['metodo_impresion'] ?? 'navegador';
 ?>
 
 <!-- Estilos específicos para mesa.php -->
@@ -234,7 +235,15 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
                             </a>
                         <?php endif; ?>
                         
-                        <?php if ($impresora_configurada): ?>
+                        <?php if ($metodo_impresion === 'navegador'): ?>
+                            <div class="<?= $esAdministrador ? '' : 'col-span-2' ?>">
+                                <!-- Impresión desde navegador -->
+                                <button onclick="imprimirTicketNavegador(<?= $orden_id ?>)" class="block w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
+                                    <i class="bi bi-globe mr-2"></i>🖨️ Ticket Local
+                                    <div class="text-xs opacity-75 mt-1">Desde Navegador</div>
+                                </button>
+                            </div>
+                        <?php elseif ($impresora_configurada): ?>
                             <div class="<?= $esAdministrador ? '' : 'col-span-2' ?>">
                                 <!-- Impresión térmica ESC/POS -->
                                 <button onclick="imprimirTicketTermico(<?= $orden_id ?>)" class="block w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl text-center font-semibold transition-colors">
@@ -1707,5 +1716,93 @@ $impresora_configurada = !empty($config_impresion['nombre_impresora'] ?? '');
 <script>
     // Hacer disponible la configuración de impresora para JavaScript
     window.configImpresoraNombre = '<?= $config_impresion['nombre_impresora'] ?? '' ?>';
+    
+    // 🖨️ Función para imprimir ticket desde navegador
+    function imprimirTicketNavegador(ordenId) {
+        // Validar que existe la orden
+        if (!ordenId) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se encontró el ID de la orden'
+            });
+            return;
+        }
+        
+        // Mostrar loading
+        Swal.fire({
+            title: 'Preparando ticket...',
+            text: 'Abriendo ventana de impresión',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // Abrir ventana del ticket
+        const ventanaTicket = window.open(
+            `<?= url('controllers/ticket_local.php') ?>?orden_id=${ordenId}`, 
+            '_blank', 
+            'width=450,height=700,scrollbars=yes,resizable=yes'
+        );
+        
+        // Verificar si se abrió la ventana
+        if (ventanaTicket) {
+            Swal.close();
+            
+            // Mostrar instrucciones
+            Swal.fire({
+                icon: 'success',
+                title: '🎫 ¡Ticket Listo!',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-3">Se ha abierto el ticket en una nueva ventana.</p>
+                        <div class="bg-green-50 p-3 rounded border border-green-200">
+                            <h4 class="font-semibold text-green-800 mb-2">📋 Para imprimir:</h4>
+                            <ol class="text-sm text-green-700 space-y-1 text-left">
+                                <li>1. Ve a la nueva ventana del ticket</li>
+                                <li>2. Presiona <code class="bg-gray-200 px-1 rounded">Ctrl+P</code> (Windows) o <code class="bg-gray-200 px-1 rounded">Cmd+P</code> (Mac)</li>
+                                <li>3. Selecciona tu impresora térmica</li>
+                                <li>4. Ajusta el tamaño de papel si es necesario</li>
+                                <li>5. ¡Presiona Imprimir!</li>
+                            </ol>
+                        </div>
+                        <div class="bg-blue-50 p-2 rounded border border-blue-200 mt-2">
+                            <p class="text-blue-800 text-xs">
+                                💡 <strong>Consejo:</strong> En la ventana del ticket hay botones para facilitar la impresión.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: '✅ Entendido',
+                width: '500px'
+            });
+        } else {
+            Swal.close();
+            Swal.fire({
+                icon: 'error',
+                title: 'Ventana Bloqueada',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-3">El navegador bloqueó la ventana emergente.</p>
+                        <div class="bg-yellow-50 p-3 rounded border border-yellow-200">
+                            <h4 class="font-semibold text-yellow-800 mb-2">🔧 Solución:</h4>
+                            <ol class="text-sm text-yellow-700 space-y-1">
+                                <li>1. Busca el ícono de "ventanas bloqueadas" en la barra de direcciones</li>
+                                <li>2. Haz clic y selecciona "Permitir ventanas emergentes"</li>
+                                <li>3. Vuelve a intentar imprimir el ticket</li>
+                            </ol>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: '🔄 Volver a Intentar',
+                confirmButtonColor: '#3B82F6'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    imprimirTicketNavegador(ordenId);
+                }
+            });
+        }
+    }
 </script>
 </div>

@@ -379,11 +379,12 @@ $sesiones_activas = [];
                                         </label>
                                         <select name="metodo_impresion" id="metodo_impresion" 
                                             class="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                            <option value="local" <?= ($config_sms['metodo_impresion'] ?? 'local') == 'local' ? 'selected' : '' ?>>Impresora Local (USB/LAN)</option>
-                                            <option value="compartida" <?= ($config_sms['metodo_impresion'] ?? 'local') == 'compartida' ? 'selected' : '' ?>>Impresora Compartida</option>
-                                            <option value="cups" <?= ($config_sms['metodo_impresion'] ?? 'local') == 'cups' ? 'selected' : '' ?>>Sistema CUPS</option>
+                                            <option value="navegador" <?= ($config_sms['metodo_impresion'] ?? 'navegador') == 'navegador' ? 'selected' : '' ?>>🖨️ Navegador (Laptop Local)</option>
+                                            <option value="local" <?= ($config_sms['metodo_impresion'] ?? 'navegador') == 'local' ? 'selected' : '' ?>>Impresora Local (USB/LAN)</option>
+                                            <option value="compartida" <?= ($config_sms['metodo_impresion'] ?? 'navegador') == 'compartida' ? 'selected' : '' ?>>Impresora Compartida</option>
+                                            <option value="cups" <?= ($config_sms['metodo_impresion'] ?? 'navegador') == 'cups' ? 'selected' : '' ?>>Sistema CUPS</option>
                                         </select>
-                                        <small class="text-slate-400">Selecciona cómo está conectada tu impresora térmica</small>
+                                        <small class="text-slate-400">🌟 Recomendado: Navegador para impresión directa desde tu laptop</small>
                                     </div>
 
                                     <div>
@@ -565,6 +566,10 @@ $sesiones_activas = [];
                         
                         <div class="space-y-4">
                             <div class="flex flex-col sm:flex-row gap-3">
+                                <button type="button" onclick="configurarNavegador()" 
+                                    class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center">
+                                    <i class="bi bi-globe mr-2"></i>🖨️ Configurar Navegador
+                                </button>
                                 <button type="button" onclick="detectarImpresoras()" 
                                     class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center">
                                     <i class="bi bi-search mr-2"></i>Detectar Impresoras
@@ -1167,6 +1172,119 @@ $sesiones_activas = [];
 
         // Usar el sistema centralizado de impresión térmica
         imprimirPruebaTermica(nombreImpresora);
+    }
+
+    // 🖨️ Configurar impresión desde navegador
+    function configurarNavegador() {
+        Swal.fire({
+            title: '🖨️ Configuración para Laptop Local',
+            html: `
+                <div class="text-left space-y-4">
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <h4 class="font-semibold text-blue-800 mb-2">✅ Ventajas del Método Navegador:</h4>
+                        <ul class="text-sm text-blue-700 space-y-1">
+                            <li>• ✅ Funciona con hosting remoto (HostGator)</li>
+                            <li>• ✅ No requiere configuración de servidor</li>
+                            <li>• ✅ Impresión directa desde tu laptop</li>
+                            <li>• ✅ Compatible con cualquier impresora</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h4 class="font-semibold text-green-800 mb-2">📋 Pasos para configurar:</h4>
+                        <ol class="text-sm text-green-700 space-y-1">
+                            <li>1. Selecciona "Navegador (Laptop Local)" como método</li>
+                            <li>2. Conecta tu impresora térmica a la laptop</li>
+                            <li>3. Los tickets se abrirán automáticamente para imprimir</li>
+                            <li>4. Usa Ctrl+P o el botón de imprimir del navegador</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <h4 class="font-semibold text-yellow-800 mb-2">🚀 ¿Quieres probarlo ahora?</h4>
+                        <p class="text-sm text-yellow-700">Podemos hacer una prueba de impresión con un ticket de ejemplo</p>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: '🖨️ Probar Ahora',
+            cancelButtonText: '⚙️ Solo Configurar',
+            confirmButtonColor: '#10B981',
+            cancelButtonColor: '#6B7280',
+            width: '600px'
+        }).then((result) => {
+            // Configurar el método como navegador
+            document.querySelector('select[name="metodo_impresion"]').value = 'navegador';
+            
+            if (result.isConfirmed) {
+                // Abrir ticket de prueba
+                probarTicketNavegador();
+            } else if (result.dismiss !== Swal.DismissReason.backdrop) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '⚙️ ¡Configurado!',
+                    text: 'Método de impresión configurado a "Navegador". Ahora los tickets se abrirán automáticamente para imprimir.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        });
+    }
+
+    // 🎫 Probar ticket desde navegador
+    function probarTicketNavegador() {
+        Swal.fire({
+            title: 'Preparando ticket de prueba...',
+            text: 'Generando ticket de ejemplo',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Abrir ventana de ticket de prueba
+        const ventanaTicket = window.open('controllers/ticket_local.php?tipo=prueba', '_blank', 'width=400,height=600,scrollbars=yes');
+        
+        // Verificar si se abrió la ventana
+        if (ventanaTicket) {
+            Swal.close();
+            Swal.fire({
+                icon: 'success',
+                title: '🎫 ¡Ticket Abierto!',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-3">Se ha abierto el ticket de prueba en una nueva ventana.</p>
+                        <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                            <h4 class="font-semibold text-blue-800 mb-2">📋 Para imprimir:</h4>
+                            <ol class="text-sm text-blue-700 space-y-1">
+                                <li>1. Ve a la nueva ventana del ticket</li>
+                                <li>2. Presiona <code>Ctrl+P</code> (Windows) o <code>Cmd+P</code> (Mac)</li>
+                                <li>3. Selecciona tu impresora térmica</li>
+                                <li>4. Ajusta el tamaño de papel si es necesario</li>
+                                <li>5. ¡Presiona Imprimir!</li>
+                            </ol>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: '✅ Entendido',
+                width: '500px'
+            });
+        } else {
+            Swal.close();
+            Swal.fire({
+                icon: 'error',
+                title: 'Ventana Bloqueada',
+                html: `
+                    <p>El navegador bloqueó la ventana emergente.</p>
+                    <div class="bg-yellow-50 p-3 rounded border border-yellow-200 mt-3">
+                        <p class="text-yellow-800 text-sm">
+                            <strong>Solución:</strong> Permite ventanas emergentes para este sitio y vuelve a intentar.
+                        </p>
+                    </div>
+                `,
+                confirmButtonColor: '#3B82F6'
+            });
+        }
     }
 
     // Resetear configuración de impresoras
